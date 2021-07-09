@@ -1,0 +1,15 @@
+{
+    "name": "YETENEK12",
+    "version": "0.0.1",
+    "keywords": [
+      "yetenek12"
+    ],
+    "description": "ESP32 library for YETENEK12 boards and sensors",
+    "repository":
+    {
+        "type": "git",
+        "url": "https://github.com/yetenek12/yetenek12-library"
+    },
+    "frameworks": "arduino",
+    "platforms": "*"
+}
