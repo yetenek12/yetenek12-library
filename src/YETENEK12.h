@@ -116,7 +116,8 @@ class Sensors
 
         Sensors();
 
-        void init(int);
+        void init(); // i2c Mode
+        void init(int, int, int); // ModBus Mode
 
         enum commType{
             modBus,

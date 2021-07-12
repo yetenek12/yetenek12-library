@@ -2,74 +2,73 @@
 
 Sensors::Sensors(){}
 
-void Sensors::init(int type){
-    selectedComm = type;
-    
-    if(selectedComm == commType::i2c){
-        Wire.begin();
-    
-    }else if(selectedComm == commType::modBus){
-        modbusSerial = new HardwareSerial(1);
-        modbusSerial->begin(MODBUS_SPEED, SERIAL_8N1, 26, 25);
-        modbus = new modbusMaster();
-        modbus->begin(ADDR_TOF, modbusSerial, 19);
-    }
+void Sensors::init(){
+	selectedComm = commType::i2c;
+	Wire.begin();
+}
+
+void Sensors::init(int rx, int tx, int sw){
+	selectedComm = commType::modBus;
+	modbusSerial = new HardwareSerial(1);
+	modbusSerial->begin(MODBUS_SPEED, SERIAL_8N1, rx, tx);
+	modbus = new modbusMaster();
+	modbus->begin(ADDR_TOF, modbusSerial, sw);
 }
 
 int16_t Sensors::getDistance(){
-    int16_t res = 0;
-    if(selectedComm == commType::i2c){
-        if(i2cRead(ADDR_TOF, ADDR_DISTANCE, res)){ return res; }
-        else{ return -1; }
+	if(selectedComm == commType::i2c){
+		int16_t res = 0;
+		if(i2cRead(ADDR_TOF, ADDR_DISTANCE, res)){ return res; }
+		else{ return -1; }
 
-    }else if(selectedComm == commType::modBus){
-        modbus->setSlaveID(ADDR_TOF);
-        return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_DISTANCE, bigEndian);
-    
-    }else{
-        return errorCodes::commTypeNotSelected;
-    }
+	}else if(selectedComm == commType::modBus){
+		modbus->setSlaveID(ADDR_TOF);
+		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_DISTANCE, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
 }
 
 void Sensors::setDistanceMode(int mode){
-    if(selectedComm == commType::i2c){
-        i2cWrite(ADDR_TOF, ADDR_DRM, mode);
+	if(selectedComm == commType::i2c){
+		i2cWrite(ADDR_TOF, ADDR_DRM, mode);
 
-    }else if(selectedComm == commType::modBus){
-        modbus->setSlaveID(ADDR_TOF);
-        modbus->uint16ToRegister(ADDR_DRM, mode);
-    }
+	}else if(selectedComm == commType::modBus){
+		modbus->setSlaveID(ADDR_TOF);
+		modbus->uint16ToRegister(ADDR_DRM, mode);
+	}
 }
 
 
 int16_t Sensors::getSoundFreq(){
-    int16_t res = 0;
-    if(selectedComm == commType::i2c){
-        if(i2cRead(ADDR_AIR_MIC_UV, ADDR_SF1, res)){ return res; }
-        else{ return -1; }
+	if(selectedComm == commType::i2c){
+		int16_t res = 0;
+		if(i2cRead(ADDR_AIR_MIC_UV, ADDR_SF1, res)){ return res; }
+		else{ return -1; }
 
-    }else if(selectedComm == commType::modBus){
-        modbus->setSlaveID(ADDR_AIR_MIC_UV);
-        return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_SF1, bigEndian);
-    
-    }else{
-        return errorCodes::commTypeNotSelected;
-    }
+	}else if(selectedComm == commType::modBus){
+		modbus->setSlaveID(ADDR_AIR_MIC_UV);
+		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_SF1, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
 }
 
 int16_t Sensors::getSoundAmplitude(){
-    int16_t res = 0;
-    if(selectedComm == commType::i2c){
-        if(i2cRead(ADDR_AIR_MIC_UV, ADDR_SA1, res)){ return res; }
-        else{ return -1; }
+	if(selectedComm == commType::i2c){
+		int16_t res = 0;
+		if(i2cRead(ADDR_AIR_MIC_UV, ADDR_SA1, res)){ return res; }
+		else{ return -1; }
 
-    }else if(selectedComm == commType::modBus){
-        modbus->setSlaveID(ADDR_AIR_MIC_UV);
-        return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_SA1, bigEndian);
-    
-    }else{
-        return errorCodes::commTypeNotSelected;
-    }
+	}else if(selectedComm == commType::modBus){
+		modbus->setSlaveID(ADDR_AIR_MIC_UV);
+		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_SA1, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
 }
 
 // byte Sensors::checkComm(modbusMaster modbus,TwoWire Wire, byte addr){
@@ -87,7 +86,7 @@ int16_t Sensors::getSoundAmplitude(){
 //             con |= 0x02;
 //     }
 //     return con;
-    // return 0;
+	// return 0;
 // }
 
 // int16_t Sensors::getTemperature()
@@ -143,7 +142,7 @@ int16_t Sensors::getSoundAmplitude(){
 //     if(iic)
 //       if (i2cWrite(ADDR_TOF,ADDR_DRM,mode))    
 //         return true;
-        
+		
 //     modbus.setSlaveID(ADDR_TOF);    
 //     modbus.uint16ToRegister(ADDR_DRM,mode);
 //     delay(2);
@@ -226,65 +225,65 @@ int16_t Sensors::getSoundAmplitude(){
 // }
 
 bool Sensors::i2cRead(byte addr, byte reg, int16_t &val){
-    try{
-        WirePacker packer;
-        packer.write(reg);
-        packer.end();
-        
-        Wire.beginTransmission(addr);
-        while (packer.available())
-            Wire.write(packer.read());
-        if(Wire.endTransmission()){
-            log_e("Wire.endTransmission() error");
-            // TODO restart or something
-            return false;
-        }
+	try{
+		WirePacker packer;
+		packer.write(reg);
+		packer.end();
+		
+		Wire.beginTransmission(addr);
+		while (packer.available())
+			Wire.write(packer.read());
+		if(Wire.endTransmission()){
+			log_e("Wire.endTransmission() error");
+			// TODO restart or something
+			return false;
+		}
 
-        delay(5); // TODO Fine Tunning
-        slaveReq = new WireSlaveRequest(Wire, addr, MAX_SLAVE_RESPONSE_LENGTH);
-        slaveReq->setRetryDelay(5);
-        if(slaveReq->request(addr)){
-            while (slaveReq->available()) {
-                byte highByte = (byte) slaveReq->read();
-                byte lowByte = (byte) slaveReq->read();
-                val = (highByte << 8) | lowByte;
-                // log_w("Brain I2C Event %hhu %hhu %ld", highByte, lowByte, val);
-            }
-            delete slaveReq;
-            return true;
-        }
-        else{
-            delete slaveReq;
-            log_e("request error");
-            return false;
-        }
-    }catch(const std::exception& e){
-        log_e("err: %s", e.what());
-        return false;
-    }
+		delay(5); // TODO Fine Tunning
+		slaveReq = new WireSlaveRequest(Wire, addr, MAX_SLAVE_RESPONSE_LENGTH);
+		slaveReq->setRetryDelay(5);
+		if(slaveReq->request(addr)){
+			while (slaveReq->available()) {
+				byte highByte = (byte) slaveReq->read();
+				byte lowByte = (byte) slaveReq->read();
+				val = (highByte << 8) | lowByte;
+				// log_w("Brain I2C Event %hhu %hhu %ld", highByte, lowByte, val);
+			}
+			delete slaveReq;
+			return true;
+		}
+		else{
+			delete slaveReq;
+			log_e("request error");
+			return false;
+		}
+	}catch(const std::exception& e){
+		log_e("err: %s", e.what());
+		return false;
+	}
 }
 
 bool Sensors::i2cWrite(byte addr, byte reg, int16_t val){
-    try{
-        WirePacker packer;
-        packer.write(reg);
-        packer.write(val);
-        packer.end();
-        
-        Wire.beginTransmission(addr);
-        while (packer.available())
-            Wire.write(packer.read());
-        if(Wire.endTransmission())
-            return false;
+	try{
+		WirePacker packer;
+		packer.write(reg);
+		packer.write(val);
+		packer.end();
+		
+		Wire.beginTransmission(addr);
+		while (packer.available())
+			Wire.write(packer.read());
+		if(Wire.endTransmission())
+			return false;
 
-        return true;
-    }
-    catch(const std::exception& e)
-    {
-        log_e("%s", e.what());
-        return false;
-    }
-    
+		return true;
+	}
+	catch(const std::exception& e)
+	{
+		log_e("%s", e.what());
+		return false;
+	}
+	
 }
 
 
