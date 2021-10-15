@@ -1,0 +1,3 @@
+[submodule "src/addr"]
+	path = src/addr
+	url = https://github.com/yetenek12/sensorkit-addresses.git
