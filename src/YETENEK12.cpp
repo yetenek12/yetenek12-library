@@ -14,7 +14,7 @@ void Sensors::init(int rx, int tx, int sw){
 	modbusSerial = new SoftwareSerial();
 	modbusSerial->begin(MODBUS_SPEED, SWSERIAL_8N1, rx, tx);
 	modbus = new modbusMaster();
-	modbus->begin(ADDR_IO, modbusSerial, sw);
+	
 }
 
 uint16_t Sensors::getDigitalIO(int pin){
@@ -168,6 +168,96 @@ uint16_t Sensors::getADCVoltage(int port){
 
 
 
+uint16_t Sensors::getAirTemperature(){
+	if(selectedComm == commType::i2c){
+		int16_t res = 0;
+		if(i2cRead(ADDR_AMU, ADDR_AMU_TMP, res)){ return res; }
+		else{ return -1; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus->begin(ADDR_IO, modbusSerial, 4);
+		modbus->setSlaveID(ADDR_AMU);
+		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_AMU_TMP, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+
+uint16_t Sensors::getAirHumidity(){
+	if(selectedComm == commType::i2c){
+		int16_t res = 0;
+		if(i2cRead(ADDR_AMU, ADDR_AMU_HUM, res)){ return res; }
+		else{ return -1; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus->setSlaveID(ADDR_AMU);
+		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_AMU_HUM, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+
+uint16_t Sensors::getAirPressure(){
+	if(selectedComm == commType::i2c){
+		int16_t res = 0;
+		if(i2cRead(ADDR_AMU, ADDR_AMU_PRE, res)){ return res; }
+		else{ return -1; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus->setSlaveID(ADDR_AMU);
+		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_AMU_PRE, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+
+uint16_t Sensors::getAltitude(){
+	if(selectedComm == commType::i2c){
+		int16_t res = 0;
+		if(i2cRead(ADDR_AMU, ADDR_AMU_ALT, res)){ return res; }
+		else{ return -1; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus->setSlaveID(ADDR_AMU);
+		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_AMU_ALT, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+
+uint16_t Sensors::getMicrophoneDB(){
+	if(selectedComm == commType::i2c){
+		int16_t res = 0;
+		if(i2cRead(ADDR_AMU, ADDR_AMU_SA, res)){ return res; }
+		else{ return -1; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus->setSlaveID(ADDR_AMU);
+		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_AMU_SA, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+
+uint16_t Sensors::getMicrophoneFrequency(){
+	if(selectedComm == commType::i2c){
+		int16_t res = 0;
+		if(i2cRead(ADDR_AMU, ADDR_AMU_SF, res)){ return res; }
+		else{ return -1; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus->setSlaveID(ADDR_AMU);
+		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_AMU_SF, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
 
 // int16_t Sensors::getDistance(){
 // 	if(selectedComm == commType::i2c){

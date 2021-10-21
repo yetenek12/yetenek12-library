@@ -38,13 +38,13 @@ class Sensors
         uint16_t getADC(int port);
         uint16_t getADCVoltage(int port);
 
-        int16_t getTemperature();
-        uint16_t getHumidity();
-        int16_t getPressure();
-        uint16_t getGas();
+        uint16_t getAirTemperature();
+        uint16_t getAirHumidity();
+        uint16_t getAirPressure();
+        uint16_t getAltitude();
+        uint16_t getMicrophoneDB();
+        uint16_t getMicrophoneFrequency();
 
-        int16_t getSoundFreq();
-        int16_t getSoundAmplitude();
 
         int16_t getDistance();
         void setDistanceMode(int);
