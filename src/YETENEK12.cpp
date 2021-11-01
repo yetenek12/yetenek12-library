@@ -11,10 +11,9 @@ void Sensors::init(){
 // For ModBus use
 void Sensors::init(int rx, int tx, int sw){
 	selectedComm = commType::modBus;
-	modbusSerial = new SoftwareSerial();
-	modbusSerial->begin(MODBUS_SPEED, SWSERIAL_8N1, rx, tx);
-	modbus = new modbusMaster();
-	
+	Serial1.begin(MODBUS_SPEED, SWSERIAL_8N1, rx, tx);
+	swPin = sw;
+	pinMode(swPin, OUTPUT);
 }
 
 uint16_t Sensors::getDigitalIO(int pin){
@@ -53,8 +52,9 @@ uint16_t Sensors::getDigitalIO(int pin){
 		else{ return -1; }
 
 	}else if(selectedComm == commType::modBus){
-		modbus->setSlaveID(ADDR_IO);
-		return modbus->int16FromRegister(HOLDING_REGISTERS, addr, bigEndian);
+		// modbus.setSlaveID(ADDR_IO);
+		modbus.begin(ADDR_IO, Serial1);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, addr, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
@@ -95,8 +95,8 @@ void Sensors::setDigitalIO(int pin, int value){
 		i2cWrite(ADDR_IO, addr, value);
 
 	}else if(selectedComm == commType::modBus){
-		modbus->setSlaveID(ADDR_IO);
-		modbus->uint16ToRegister(addr, value);
+		// modbus.setSlaveID(ADDR_IO);
+		modbus.uint16ToRegister(addr, value);
 
 	}
 }
@@ -126,8 +126,8 @@ uint16_t Sensors::getADC(int port){
 		else{ return -1; }
 
 	}else if(selectedComm == commType::modBus){
-		modbus->setSlaveID(ADDR_IO);
-		return modbus->int16FromRegister(HOLDING_REGISTERS, addr, bigEndian);
+		modbus.setSlaveID(ADDR_IO);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, addr, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
@@ -158,8 +158,8 @@ uint16_t Sensors::getADCVoltage(int port){
 		else{ return -1; }
 
 	}else if(selectedComm == commType::modBus){
-		modbus->setSlaveID(ADDR_IO);
-		return modbus->int16FromRegister(HOLDING_REGISTERS, addr, bigEndian);
+		modbus.setSlaveID(ADDR_IO);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, addr, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
@@ -171,13 +171,13 @@ uint16_t Sensors::getADCVoltage(int port){
 uint16_t Sensors::getAirTemperature(){
 	if(selectedComm == commType::i2c){
 		int16_t res = 0;
-		if(i2cRead(ADDR_AMU, ADDR_AMU_TMP, res)){ return res; }
+		if(i2cRead(ADDR_AMS, ADDR_AMS_TMP, res)){ return res; }
 		else{ return -1; }
 
 	}else if(selectedComm == commType::modBus){
-		modbus->begin(ADDR_IO, modbusSerial, 4);
-		modbus->setSlaveID(ADDR_AMU);
-		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_AMU_TMP, bigEndian);
+		modbus.begin(ADDR_IO, modbusSerial, 4);
+		modbus.setSlaveID(ADDR_AMS);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_AMS_TMP, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
@@ -187,12 +187,12 @@ uint16_t Sensors::getAirTemperature(){
 uint16_t Sensors::getAirHumidity(){
 	if(selectedComm == commType::i2c){
 		int16_t res = 0;
-		if(i2cRead(ADDR_AMU, ADDR_AMU_HUM, res)){ return res; }
+		if(i2cRead(ADDR_AMS, ADDR_AMS_HUM, res)){ return res; }
 		else{ return -1; }
 
 	}else if(selectedComm == commType::modBus){
-		modbus->setSlaveID(ADDR_AMU);
-		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_AMU_HUM, bigEndian);
+		modbus.setSlaveID(ADDR_AMS);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_AMS_HUM, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
@@ -202,12 +202,12 @@ uint16_t Sensors::getAirHumidity(){
 uint16_t Sensors::getAirPressure(){
 	if(selectedComm == commType::i2c){
 		int16_t res = 0;
-		if(i2cRead(ADDR_AMU, ADDR_AMU_PRE, res)){ return res; }
+		if(i2cRead(ADDR_AMS, ADDR_AMS_PRE, res)){ return res; }
 		else{ return -1; }
 
 	}else if(selectedComm == commType::modBus){
-		modbus->setSlaveID(ADDR_AMU);
-		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_AMU_PRE, bigEndian);
+		modbus.setSlaveID(ADDR_AMS);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_AMS_PRE, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
@@ -217,12 +217,12 @@ uint16_t Sensors::getAirPressure(){
 uint16_t Sensors::getAltitude(){
 	if(selectedComm == commType::i2c){
 		int16_t res = 0;
-		if(i2cRead(ADDR_AMU, ADDR_AMU_ALT, res)){ return res; }
+		if(i2cRead(ADDR_AMS, ADDR_AMS_ALT, res)){ return res; }
 		else{ return -1; }
 
 	}else if(selectedComm == commType::modBus){
-		modbus->setSlaveID(ADDR_AMU);
-		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_AMU_ALT, bigEndian);
+		modbus.setSlaveID(ADDR_AMS);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_AMS_ALT, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
@@ -232,12 +232,12 @@ uint16_t Sensors::getAltitude(){
 uint16_t Sensors::getMicrophoneDB(){
 	if(selectedComm == commType::i2c){
 		int16_t res = 0;
-		if(i2cRead(ADDR_AMU, ADDR_AMU_SA, res)){ return res; }
+		if(i2cRead(ADDR_AMS, ADDR_AMS_SA, res)){ return res; }
 		else{ return -1; }
 
 	}else if(selectedComm == commType::modBus){
-		modbus->setSlaveID(ADDR_AMU);
-		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_AMU_SA, bigEndian);
+		modbus.setSlaveID(ADDR_AMS);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_AMS_SA, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
@@ -247,40 +247,40 @@ uint16_t Sensors::getMicrophoneDB(){
 uint16_t Sensors::getMicrophoneFrequency(){
 	if(selectedComm == commType::i2c){
 		int16_t res = 0;
-		if(i2cRead(ADDR_AMU, ADDR_AMU_SF, res)){ return res; }
+		if(i2cRead(ADDR_AMS, ADDR_AMS_SF, res)){ return res; }
 		else{ return -1; }
 
 	}else if(selectedComm == commType::modBus){
-		modbus->setSlaveID(ADDR_AMU);
-		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_AMU_SF, bigEndian);
+		modbus.setSlaveID(ADDR_AMS);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_AMS_SF, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
 	}
 }
 
-// int16_t Sensors::getDistance(){
-// 	if(selectedComm == commType::i2c){
-// 		int16_t res = 0;
-// 		if(i2cRead(ADDR_IO, ADDR_IO_1, res)){ return res; }
-// 		else{ return -1; }
+uint16_t Sensors::getDistance(){
+	if(selectedComm == commType::i2c){
+		int16_t res = 0;
+		if(i2cRead(ADDR_TRU, ADDR_TRU_DIS, res)){ return res; }
+		else{ return -1; }
 
-// 	}else if(selectedComm == commType::modBus){
-// 		modbus->setSlaveID(ADDR_TOF);
-// 		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_DISTANCE, bigEndian);
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(ADDR_TRU);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_TRU_DIS, bigEndian);
 	
-// 	}else{
-// 		return errorCodes::commTypeNotSelected;
-// 	}
-// }
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
 
 // void Sensors::setDistanceMode(int mode){
 // 	if(selectedComm == commType::i2c){
 // 		i2cWrite(ADDR_IO, ADDR_IO_1, mode);
 
 // 	}else if(selectedComm == commType::modBus){
-// 		modbus->setSlaveID(ADDR_TOF);
-// 		modbus->uint16ToRegister(ADDR_DRM, mode);
+// 		modbus.setSlaveID(ADDR_TOF);
+// 		modbus.uint16ToRegister(ADDR_DRM, mode);
 // 	}
 // }
 
@@ -292,8 +292,8 @@ uint16_t Sensors::getMicrophoneFrequency(){
 // 		else{ return -1; }
 
 // 	}else if(selectedComm == commType::modBus){
-// 		modbus->setSlaveID(ADDR_AIR_MIC_UV);
-// 		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_SF1, bigEndian);
+// 		modbus.setSlaveID(ADDR_AIR_MIC_UV);
+// 		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_SF1, bigEndian);
 	
 // 	}else{
 // 		return errorCodes::commTypeNotSelected;
@@ -307,8 +307,8 @@ uint16_t Sensors::getMicrophoneFrequency(){
 // 		else{ return -1; }
 
 // 	}else if(selectedComm == commType::modBus){
-// 		modbus->setSlaveID(ADDR_AIR_MIC_UV);
-// 		return modbus->int16FromRegister(HOLDING_REGISTERS, ADDR_SA1, bigEndian);
+// 		modbus.setSlaveID(ADDR_AIR_MIC_UV);
+// 		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_SA1, bigEndian);
 	
 // 	}else{
 // 		return errorCodes::commTypeNotSelected;
@@ -491,7 +491,7 @@ bool Sensors::i2cRead(byte addr, byte reg, int16_t &val){
 				byte highByte = (byte) slaveReq->read();
 				byte lowByte = (byte) slaveReq->read();
 				val = (highByte << 8) | lowByte;
-				log_w("Brain I2C Event %hhu %hhu %ld", highByte, lowByte, val);
+				// log_w("Brain I2C Event %hhu %hhu %ld", highByte, lowByte, val);
 			}
 			delete slaveReq;
 			return true;

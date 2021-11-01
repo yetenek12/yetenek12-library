@@ -11,7 +11,7 @@ class Sensors
 {
     public:
         SoftwareSerial* modbusSerial;
-        modbusMaster* modbus;
+        modbusMaster modbus;
         WireSlaveRequest* slaveReq;
 
         int selectedComm = -1;
@@ -20,6 +20,8 @@ class Sensors
 
         void init(); // i2c Mode
         void init(int, int, int); // ModBus Mode
+
+        int swPin = 0;
 
         enum commType{
             modBus,
@@ -46,7 +48,7 @@ class Sensors
         uint16_t getMicrophoneFrequency();
 
 
-        int16_t getDistance();
+        uint16_t getDistance();
         void setDistanceMode(int);
 
         uint16_t getUva();
