@@ -10,7 +10,7 @@
 class Sensors
 {
     public:
-        SoftwareSerial* modbusSerial;
+        HardwareSerial* modbusSerial;
         modbusMaster modbus;
         WireSlaveRequest* slaveReq;
 

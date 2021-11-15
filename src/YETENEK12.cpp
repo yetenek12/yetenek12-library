@@ -2,18 +2,19 @@
 
 Sensors::Sensors(){}
 
-// For I2C use
+// For I2C
 void Sensors::init(){
 	selectedComm = commType::i2c;
 	Wire.begin(33, 32, 400000);
 }
 
-// For ModBus use
+// For ModBus
 void Sensors::init(int rx, int tx, int sw){
 	selectedComm = commType::modBus;
-	Serial1.begin(MODBUS_SPEED, SWSERIAL_8N1, rx, tx);
+	Serial2.begin(MODBUS_SPEED, SERIAL_8N1, rx, tx);
 	swPin = sw;
 	pinMode(swPin, OUTPUT);
+	modbus.begin(ADDR_IO, Serial2);
 }
 
 uint16_t Sensors::getDigitalIO(int pin){
@@ -52,8 +53,7 @@ uint16_t Sensors::getDigitalIO(int pin){
 		else{ return -1; }
 
 	}else if(selectedComm == commType::modBus){
-		// modbus.setSlaveID(ADDR_IO);
-		modbus.begin(ADDR_IO, Serial1);
+		modbus.setSlaveID(ADDR_IO);
 		return modbus.int16FromRegister(HOLDING_REGISTERS, addr, bigEndian);
 	
 	}else{
@@ -95,12 +95,11 @@ void Sensors::setDigitalIO(int pin, int value){
 		i2cWrite(ADDR_IO, addr, value);
 
 	}else if(selectedComm == commType::modBus){
-		// modbus.setSlaveID(ADDR_IO);
+		modbus.setSlaveID(ADDR_IO);
 		modbus.uint16ToRegister(addr, value);
 
 	}
 }
-
 
 uint16_t Sensors::getADC(int port){
 	int addr = 0;
@@ -166,8 +165,6 @@ uint16_t Sensors::getADCVoltage(int port){
 	}
 }
 
-
-
 uint16_t Sensors::getAirTemperature(){
 	if(selectedComm == commType::i2c){
 		int16_t res = 0;
@@ -175,9 +172,8 @@ uint16_t Sensors::getAirTemperature(){
 		else{ return -1; }
 
 	}else if(selectedComm == commType::modBus){
-		modbus.begin(ADDR_IO, modbusSerial, 4);
 		modbus.setSlaveID(ADDR_AMS);
-		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_AMS_TMP, bigEndian);
+		return modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_TMP, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
