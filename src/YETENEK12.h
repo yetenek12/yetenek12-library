@@ -18,8 +18,7 @@ class Sensors
 
 		Sensors();
 
-		void init(); // i2c Mode
-		void init(int, int, int); // ModBus Mode
+		void init(int type); // 0 => i2c Mode , 1 => ModBus
 
 		int swPin = 0;
 

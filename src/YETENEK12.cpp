@@ -2,20 +2,18 @@
 
 Sensors::Sensors(){}
 
-// For I2C
-void Sensors::init(){
-	selectedComm = commType::i2c;
-	Wire.begin(33, 32, 400000);
-}
-
-// For ModBus
-void Sensors::init(int rx, int tx, int sw){
-	selectedComm = commType::modBus;
-	Serial2.begin(MODBUS_SPEED, SERIAL_8N1, rx, tx);
-	swPin = sw;
-	pinMode(swPin, OUTPUT);
-	// Switch pin girince calismiyor
-	modbus.begin(ADDR_IO_1, Serial2); // Random address works
+void Sensors::init(int type){
+	if(type == 0){
+		selectedComm = commType::i2c;
+		Wire.begin(33, 32, 400000);
+	}else if(type == 1){
+		selectedComm = commType::modBus;
+		Serial2.begin(MODBUS_SPEED, SERIAL_8N1, rx, tx);
+		swPin = sw;
+		pinMode(swPin, OUTPUT);
+		// Switch pin girince calismiyor
+		modbus.begin(ADDR_IO_1, Serial2); // Random address works
+	}
 }
 
 uint16_t Sensors::getDigitalIO(int addr, int pin){
