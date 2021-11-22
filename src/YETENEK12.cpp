@@ -8,8 +8,7 @@ void Sensors::init(int type){
 		Wire.begin(33, 32, 400000);
 	}else if(type == 1){
 		selectedComm = commType::modBus;
-		Serial2.begin(MODBUS_SPEED, SERIAL_8N1, rx, tx);
-		swPin = sw;
+		Serial2.begin(MODBUS_SPEED, SERIAL_8N1, 9, 10);
 		pinMode(swPin, OUTPUT);
 		// Switch pin girince calismiyor
 		modbus.begin(ADDR_IO_1, Serial2); // Random address works
