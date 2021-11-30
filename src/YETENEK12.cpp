@@ -5,7 +5,7 @@ Sensors::Sensors(){}
 void Sensors::init(int type){
 	if(type == 0){
 		selectedComm = commType::i2c;
-		Wire.begin(33, 32, 400000);
+		Wire.begin(33, 32, (uint32_t) 400000);
 	}else if(type == 1){
 		selectedComm = commType::modBus;
 		Serial2.begin(MODBUS_SPEED, SERIAL_8N1, 9, 10);
@@ -14,6 +14,9 @@ void Sensors::init(int type){
 		modbus.begin(ADDR_IO_1, Serial2); // Random address works
 	}
 }
+
+
+// IO BOARD
 
 uint16_t Sensors::getDigitalIO(int addr, int pin){
 	int r_addr = 0;
@@ -48,7 +51,7 @@ uint16_t Sensors::getDigitalIO(int addr, int pin){
 	if(selectedComm == commType::i2c){
 		uint16_t res = 0;
 		if(i2cRead(ADDR_IO_1, r_addr, &res)){ return res; }
-		else{ return -1; }
+		else{ return 0; }
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(ADDR_IO_1);
@@ -93,15 +96,9 @@ void Sensors::setDigitalIO(int addr, int pin, int value){
 		i2cWrite(ADDR_IO_1, r_addr, value);
 
 	}else if(selectedComm == commType::modBus){
-		long before = millis();
-		Serial.print("SET SLAVE ID ");
-		Serial.println(before);
 		modbus.setSlaveID(ADDR_IO_1);
 		modbus.uint16ToRegister(r_addr, value);
-		Serial.print("FINISH ");
-		Serial.println(millis()-before);
-		Serial.println();
-
+		long after = millis();
 	}
 }
 
@@ -126,7 +123,7 @@ uint16_t Sensors::getADC(int addr, int port){
 	if(selectedComm == commType::i2c){
 		uint16_t res = 0;
 		if(i2cRead(ADDR_IO_1, r_addr, &res)){ return res; }
-		else{ return -1; }
+		else{ return 0; }
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(ADDR_IO_1);
@@ -164,13 +161,7 @@ float Sensors::getADCVoltage(int addr, int port){
 		uint16_t val1 = 0, val2 = 0;
 		bool t1 = i2cRead(ADDR_IO_1, r_addr, &val1);
 		bool t2 = i2cRead(ADDR_IO_1, r_addr2, &val2);
-		
-		Serial.print("VAL1: ");
-		Serial.print(val1);
-		Serial.print(" -- VAL2: ");
-		Serial.println(val2);
-
-		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
@@ -185,105 +176,370 @@ float Sensors::getADCVoltage(int addr, int port){
 }
 
 
-uint16_t Sensors::getAirTemperature(){
+
+// AIR MIC SGP
+
+float Sensors::getAirTemperature(int addr){
 	if(selectedComm == commType::i2c){
-		uint16_t res = 0;
-		if(i2cRead(ADDR_AMS_1, ADDR_AMS_TMP, &res)){ return res; }
-		else{ return -1; }
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_TMP_MSB, &val1);
+		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_TMP_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(ADDR_AMS_1);
-		return modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_TMP, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_TMP_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_TMP_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
 	}
 }
 
-uint16_t Sensors::getAirHumidity(){
+float Sensors::getAirHumidity(int addr){
 	if(selectedComm == commType::i2c){
-		uint16_t res = 0;
-		if(i2cRead(ADDR_AMS_1, ADDR_AMS_HUM, &res)){ return res; }
-		else{ return -1; }
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_HUM_MSB, &val1);
+		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_HUM_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(ADDR_AMS_1);
-		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_AMS_HUM, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_HUM_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_HUM_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
 	}
 }
 
-uint16_t Sensors::getAirPressure(){
+float Sensors::getAirPressure(int addr){
 	if(selectedComm == commType::i2c){
-		uint16_t res = 0;
-		if(i2cRead(ADDR_AMS_1, ADDR_AMS_PRE, &res)){ return res; }
-		else{ return -1; }
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_PRE_MSB, &val1);
+		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_PRE_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(ADDR_AMS_1);
-		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_AMS_PRE, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_PRE_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_PRE_LSB, bigEndian);
+		return float32_from_two_uint16(val2, val1);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
 	}
 }
 
-uint16_t Sensors::getAltitude(){
+float Sensors::getAltitude(int addr){
 	if(selectedComm == commType::i2c){
-		uint16_t res = 0;
-		if(i2cRead(ADDR_AMS_1, ADDR_AMS_ALT, &res)){ return res; }
-		else{ return -1; }
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_ALT_MSB, &val1);
+		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_ALT_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(ADDR_AMS_1);
-		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_AMS_ALT, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_ALT_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_ALT_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
 	}
 }
 
-uint16_t Sensors::getMicrophoneDB(){
+float Sensors::getMicrophoneFrequency(int addr){
 	if(selectedComm == commType::i2c){
-		uint16_t res = 0;
-		if(i2cRead(ADDR_AMS_1, ADDR_AMS_SA, &res)){ return res; }
-		else{ return -1; }
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_SF_MSB, &val1);
+		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_SF_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(ADDR_AMS_1);
-		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_AMS_SA, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_SF_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_SF_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
 	}
 }
 
-uint16_t Sensors::getMicrophoneFrequency(){
+float Sensors::getMicrophoneAmplitude(int addr){
 	if(selectedComm == commType::i2c){
-		uint16_t res = 0;
-		if(i2cRead(ADDR_AMS_1, ADDR_AMS_SF, &res)){ return res; }
-		else{ return -1; }
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_SA_MSB, &val1);
+		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_SA_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(ADDR_AMS_1);
-		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_AMS_SF, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_SA_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_SA_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
 	}
 }
 
-uint16_t Sensors::getDistance(){
+float Sensors::getCO2(int addr){
 	if(selectedComm == commType::i2c){
-		uint16_t res = 0;
-		if(i2cRead(ADDR_TRU_1, ADDR_TRU_DIS, &res)){ return res; }
-		else{ return -1; }
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_CO2_MSB, &val1);
+		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_CO2_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(ADDR_AMS_1);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_CO2_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_CO2_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+
+float Sensors::getTVOC(int addr){
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_TVOC_MSB, &val1);
+		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_TVOC_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(ADDR_AMS_1);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_TVOC_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_TVOC_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+
+float Sensors::getH2(int addr){
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_H2_MSB, &val1);
+		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_H2_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(ADDR_AMS_1);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_H2_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_H2_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+
+float Sensors::getEthanol(int addr){
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_ETH_MSB, &val1);
+		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_ETH_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(ADDR_AMS_1);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_ETH_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_ETH_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+
+
+
+
+// TOF RGB UV
+
+float Sensors::getDistance(int addr){
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(ADDR_TRU_1, ADDR_TRU_DIS_MSB, &val1);
+		bool t2 = i2cRead(ADDR_TRU_1, ADDR_TRU_DIS_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(ADDR_TRU_1);
-		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_TRU_DIS, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_DIS_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_DIS_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getUVA(int addr){
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(ADDR_TRU_1, ADDR_TRU_A_MSB, &val1);
+		bool t2 = i2cRead(ADDR_TRU_1, ADDR_TRU_A_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(ADDR_TRU_1);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_A_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_A_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getUVB(int addr){
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(ADDR_TRU_1, ADDR_TRU_B_MSB, &val1);
+		bool t2 = i2cRead(ADDR_TRU_1, ADDR_TRU_B_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(ADDR_TRU_1);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_B_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_B_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getUVIndex(int addr){
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(ADDR_TRU_1, ADDR_TRU_I_MSB, &val1);
+		bool t2 = i2cRead(ADDR_TRU_1, ADDR_TRU_I_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(ADDR_TRU_1);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_I_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_I_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+
+uint16_t Sensors::getColorRed(int addr){
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(ADDR_TRU_1, ADDR_TRU_C_R, &res)){ return res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(ADDR_TRU_1);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_TRU_C_R, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+uint16_t Sensors::getColorGreen(int addr){
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(ADDR_TRU_1, ADDR_TRU_C_G, &res)){ return res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(ADDR_TRU_1);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_TRU_C_G, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+uint16_t Sensors::getColorBlue(int addr){
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(ADDR_TRU_1, ADDR_TRU_C_B, &res)){ return res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(ADDR_TRU_1);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_TRU_C_B, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+uint16_t Sensors::getColorClear(int addr){
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(ADDR_TRU_1, ADDR_TRU_C_C, &res)){ return res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(ADDR_TRU_1);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_TRU_C_C, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+uint16_t Sensors::getColorTemp(int addr){
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(ADDR_TRU_1, ADDR_TRU_C_T, &res)){ return res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(ADDR_TRU_1);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_TRU_C_T, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+uint16_t Sensors::getColorLux(int addr){
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(ADDR_TRU_1, ADDR_TRU_C_L, &res)){ return res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(ADDR_TRU_1);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_TRU_C_L, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+uint16_t Sensors::getIRSensor(int addr){
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(ADDR_TRU_1, ADDR_TRU_IR, &res)){ return res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(ADDR_TRU_1);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_TRU_IR, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
@@ -485,65 +741,45 @@ uint16_t Sensors::getDistance(){
 // }
 
 bool Sensors::i2cRead(byte addr, byte reg, uint16_t *val){
-	try{
-		WirePacker packer;
-		packer.write(reg);
-		packer.end();
-		
-		Wire.beginTransmission(addr);
-		while (packer.available())
-			Wire.write(packer.read());
-		if(Wire.endTransmission()){
-			log_e("Wire.endTransmission() error");
-			// TODO restart or something
-			return false;
-		}
+	// Serial.println("REQUEST");
+	// Wire.requestFrom((uint8_t) addr, (uint8_t) 2);
+	// delay(2000);
+	// Serial.printf("Wire WRITE %d - %d\n", addr, reg);
+	Wire.beginTransmission(addr);
+	Wire.write((uint8_t)reg);
+	if(Wire.endTransmission(true)){
+		log_e("Wire.endTransmission() error");
+		return false;
+	}
 
-		delay(10); // TODO Fine Tunning
-		slaveReq = new WireSlaveRequest(Wire, addr, MAX_SLAVE_RESPONSE_LENGTH);
-		slaveReq->setRetryDelay(10);
-		if(slaveReq->request(addr)){
-			while (slaveReq->available()) {
-				byte highByte = (byte) slaveReq->read();
-				byte lowByte = (byte) slaveReq->read();
-				*val = (highByte << 8) | lowByte;
-				// log_w("Brain I2C Event %hhu %hhu %ld", highByte, lowByte, val);
-			}
-			delete slaveReq;
-			return true;
-		}
-		else{
-			delete slaveReq;
-			log_e("request error");
-			return false;
-		}
-	}catch(const std::exception& e){
-		log_e("err: %s", e.what());
+	delay(10);
+
+	uint8_t error = Wire.requestFrom((uint8_t) addr, (uint8_t) 2);
+	if(error){
+		// uint8_t bytes[error];
+		// uint16_t datta;
+		// Wire.readBytes(bytes, error);
+		// datta = (bytes[0] << 8) | bytes[1];
+		// log_e("Wire Event H:%hhu L:%hhu Data: %ld\n", bytes[0], bytes[1], datta);
+		byte highByte = (byte) Wire.read();
+		byte lowByte = (byte) Wire.read();
+		*val = (highByte << 8) | lowByte;
+		// Serial.printf("Wire Event H:%hhu L:%hhu Data: %ld\n", highByte, lowByte, *val);
+		return true;
+	}else{
+		log_e("Wire.requestFrom() error");
 		return false;
 	}
 }
 
 bool Sensors::i2cWrite(byte addr, byte reg, uint16_t val){
-	try{
-		WirePacker packer;
-		packer.write(reg);
-		packer.write(val);
-		packer.end();
-
-		Wire.beginTransmission(addr);
-		while (packer.available())
-			Wire.write(packer.read());
-		if(Wire.endTransmission())
-			return false;
-
-		return true;
-	}
-	catch(const std::exception& e)
-	{
-		log_e("%s", e.what());
+	Wire.beginTransmission(addr);
+	Wire.write(reg);
+	Wire.write(val);
+	if(Wire.endTransmission(true))
+		log_e("Wire.endTransmission() error");
 		return false;
-	}
-	
+	return true;
 }
 
 

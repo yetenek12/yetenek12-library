@@ -4,7 +4,6 @@
 #include <Wire.h>
 #include <SoftwareSerial.h>
 #include <SensorModbusMaster.h>
-#include <WireSlaveRequest.h>
 #include <addr/defines.h>
 
 class Sensors
@@ -12,7 +11,6 @@ class Sensors
 	public:
 		HardwareSerial* modbusSerial;
 		modbusMaster modbus;
-		WireSlaveRequest* slaveReq;
 
 		int selectedComm = -1;
 
@@ -39,28 +37,32 @@ class Sensors
 		uint16_t getADC(int addr, int port);
 		float getADCVoltage(int addr, int port);
 
-		uint16_t getAirTemperature();
-		uint16_t getAirHumidity();
-		uint16_t getAirPressure();
-		uint16_t getAltitude();
-		uint16_t getMicrophoneDB();
-		uint16_t getMicrophoneFrequency();
+		// Air Mic Sgp
+		float getAirTemperature(int addr);
+		float getAirHumidity(int addr);
+		float getAirPressure(int addr);
+		float getAltitude(int addr);
+		float getMicrophoneFrequency(int addr);
+		float getMicrophoneAmplitude(int addr);
+		float getCO2(int addr);
+		float getTVOC(int addr);
+		float getH2(int addr);
+		float getEthanol(int addr);
 
-
-		uint16_t getDistance();
-		void setDistanceMode(int);
-
-		uint16_t getUva();
-		uint16_t getUvb();
-		uint16_t getUvindex();
-
-		int16_t getADC(byte channel, bool = false);
-		int16_t getAGMT(byte, bool = false);             //Accelerometer,Gyro, Magnetometer, Temperature
-		//bool setAccMode(byte, bool = false);
-		//TODO: implement all mode setters
-
-		int16_t getTempProbe();
-
+		// Tof Rgb Uv
+		float getDistance(int addr);
+		// uint16_t getDistanceStatus(int addr); // TODO
+		// void setDistanceMode(int); // TODO
+		float getUVA(int addr);
+		float getUVB(int addr);
+		float getUVIndex(int addr);
+		uint16_t getColorRed(int addr);
+		uint16_t getColorGreen(int addr);
+		uint16_t getColorBlue(int addr);
+		uint16_t getColorClear(int addr);
+		uint16_t getColorTemp(int addr);
+		uint16_t getColorLux(int addr);
+		uint16_t getIRSensor(int addr);
 
 	private:
 		bool i2cRead(byte, byte, uint16_t*);
