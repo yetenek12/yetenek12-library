@@ -793,4 +793,8 @@ float Sensors::float32_from_two_uint16(uint16_t MSB_uint, uint16_t LSB_uint){
 	return union_for_conv.f_number;
 }
 
+void Sensors::setBuzzer(int value){
+	digitalWrite(25, value);
+}
+
 Sensors yetenek = Sensors();

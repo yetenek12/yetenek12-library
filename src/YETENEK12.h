@@ -63,6 +63,10 @@ class Sensors
 		uint16_t getColorTemp(int addr);
 		uint16_t getColorLux(int addr);
 		uint16_t getIRSensor(int addr);
+		
+		// Internal
+
+		void setBuzzer(int value);
 
 	private:
 		bool i2cRead(byte, byte, uint16_t*);
