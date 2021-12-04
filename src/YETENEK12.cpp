@@ -741,30 +741,33 @@ uint16_t Sensors::getIRSensor(int addr){
 // }
 
 bool Sensors::i2cRead(byte addr, byte reg, uint16_t *val){
-	// Serial.println("REQUEST");
-	// Wire.requestFrom((uint8_t) addr, (uint8_t) 2);
-	// delay(2000);
-	// Serial.printf("Wire WRITE %d - %d\n", addr, reg);
+
+	// BUG: arduino-esp32 Ilk okumada bir onceki sorgunun degeri geri donuyor, onun icin ayni sorgudan iki kere yapmak ve okumak gerekiyor
+	
+	Wire.beginTransmission(addr);
+	Wire.write((uint8_t)reg);
+	if(Wire.endTransmission(true)){
+		log_e("Wire.endTransmission() error");
+	}
+	uint8_t error = Wire.requestFrom((uint8_t) addr, (uint8_t) 2);
+	if(error){
+		byte highByte = (byte) Wire.read();
+		byte lowByte = (byte) Wire.read();
+	}else{
+		log_e("Wire.requestFrom() error");
+	}
+
 	Wire.beginTransmission(addr);
 	Wire.write((uint8_t)reg);
 	if(Wire.endTransmission(true)){
 		log_e("Wire.endTransmission() error");
 		return false;
 	}
-
-	delay(10);
-
-	uint8_t error = Wire.requestFrom((uint8_t) addr, (uint8_t) 2);
+	error = Wire.requestFrom((uint8_t) addr, (uint8_t) 2);
 	if(error){
-		// uint8_t bytes[error];
-		// uint16_t datta;
-		// Wire.readBytes(bytes, error);
-		// datta = (bytes[0] << 8) | bytes[1];
-		// log_e("Wire Event H:%hhu L:%hhu Data: %ld\n", bytes[0], bytes[1], datta);
 		byte highByte = (byte) Wire.read();
 		byte lowByte = (byte) Wire.read();
 		*val = (highByte << 8) | lowByte;
-		// Serial.printf("Wire Event H:%hhu L:%hhu Data: %ld\n", highByte, lowByte, *val);
 		return true;
 	}else{
 		log_e("Wire.requestFrom() error");
