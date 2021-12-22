@@ -161,7 +161,7 @@ float Sensors::getADCVoltage(int addr, int port){
 		uint16_t val1 = 0, val2 = 0;
 		bool t1 = i2cRead(ADDR_IO_1, r_addr, &val1);
 		bool t2 = i2cRead(ADDR_IO_1, r_addr2, &val2);
-		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
@@ -184,7 +184,7 @@ float Sensors::getAirTemperature(int addr){
 		uint16_t val1 = 0, val2 = 0;
 		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_TMP_MSB, &val1);
 		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_TMP_LSB, &val2);
-		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
@@ -203,7 +203,7 @@ float Sensors::getAirHumidity(int addr){
 		uint16_t val1 = 0, val2 = 0;
 		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_HUM_MSB, &val1);
 		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_HUM_LSB, &val2);
-		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
@@ -222,14 +222,14 @@ float Sensors::getAirPressure(int addr){
 		uint16_t val1 = 0, val2 = 0;
 		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_PRE_MSB, &val1);
 		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_PRE_LSB, &val2);
-		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(ADDR_AMS_1);
 		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_PRE_MSB, bigEndian);
 		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_PRE_LSB, bigEndian);
-		return float32_from_two_uint16(val2, val1);
+		return float32_from_two_uint16(val1, val2);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
@@ -241,7 +241,7 @@ float Sensors::getAltitude(int addr){
 		uint16_t val1 = 0, val2 = 0;
 		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_ALT_MSB, &val1);
 		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_ALT_LSB, &val2);
-		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
@@ -260,7 +260,7 @@ float Sensors::getMicrophoneFrequency(int addr){
 		uint16_t val1 = 0, val2 = 0;
 		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_SF_MSB, &val1);
 		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_SF_LSB, &val2);
-		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
@@ -279,7 +279,7 @@ float Sensors::getMicrophoneAmplitude(int addr){
 		uint16_t val1 = 0, val2 = 0;
 		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_SA_MSB, &val1);
 		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_SA_LSB, &val2);
-		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
@@ -298,7 +298,7 @@ float Sensors::getCO2(int addr){
 		uint16_t val1 = 0, val2 = 0;
 		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_CO2_MSB, &val1);
 		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_CO2_LSB, &val2);
-		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
@@ -317,7 +317,7 @@ float Sensors::getTVOC(int addr){
 		uint16_t val1 = 0, val2 = 0;
 		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_TVOC_MSB, &val1);
 		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_TVOC_LSB, &val2);
-		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
@@ -336,7 +336,7 @@ float Sensors::getH2(int addr){
 		uint16_t val1 = 0, val2 = 0;
 		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_H2_MSB, &val1);
 		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_H2_LSB, &val2);
-		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
@@ -355,7 +355,7 @@ float Sensors::getEthanol(int addr){
 		uint16_t val1 = 0, val2 = 0;
 		bool t1 = i2cRead(ADDR_AMS_1, ADDR_AMS_ETH_MSB, &val1);
 		bool t2 = i2cRead(ADDR_AMS_1, ADDR_AMS_ETH_LSB, &val2);
-		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
@@ -379,7 +379,11 @@ float Sensors::getDistance(int addr){
 		uint16_t val1 = 0, val2 = 0;
 		bool t1 = i2cRead(ADDR_TRU_1, ADDR_TRU_DIS_MSB, &val1);
 		bool t2 = i2cRead(ADDR_TRU_1, ADDR_TRU_DIS_LSB, &val2);
-		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		Serial.print(val1);
+		Serial.print(" - ");
+		Serial.print(val2);
+		Serial.println();
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
@@ -397,7 +401,7 @@ float Sensors::getUVA(int addr){
 		uint16_t val1 = 0, val2 = 0;
 		bool t1 = i2cRead(ADDR_TRU_1, ADDR_TRU_A_MSB, &val1);
 		bool t2 = i2cRead(ADDR_TRU_1, ADDR_TRU_A_LSB, &val2);
-		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
@@ -415,7 +419,7 @@ float Sensors::getUVB(int addr){
 		uint16_t val1 = 0, val2 = 0;
 		bool t1 = i2cRead(ADDR_TRU_1, ADDR_TRU_B_MSB, &val1);
 		bool t2 = i2cRead(ADDR_TRU_1, ADDR_TRU_B_LSB, &val2);
-		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
@@ -433,7 +437,7 @@ float Sensors::getUVIndex(int addr){
 		uint16_t val1 = 0, val2 = 0;
 		bool t1 = i2cRead(ADDR_TRU_1, ADDR_TRU_I_MSB, &val1);
 		bool t2 = i2cRead(ADDR_TRU_1, ADDR_TRU_I_LSB, &val2);
-		if(t1 && t2){ return float32_from_two_uint16(val2, val1); }
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
