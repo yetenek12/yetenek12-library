@@ -2,7 +2,6 @@
 #define YETENEK12_H
 
 #include <Wire.h>
-#include <SoftwareSerial.h>
 #include <SensorModbusMaster.h>
 #include <addr/defines.h>
 
@@ -29,46 +28,71 @@ class Sensors
 			commTypeNotSelected = -2,
 		};
 
+		enum colorCodes{
+			green = 1,
+			blue,
+			orange,
+			yellow,
+			turquoise,
+			purple
+		};
+
+		enum boards{
+			io = 1,
+			airmic,
+			tofrgb,
+			imu,
+			temp,
+			motor,
+			gps
+		};
+
 		// byte checkComm(modbusMaster,TwoWire,byte addr);
 
+		// Global
+		void setDefaultAddresses();
+		void setAddress(int board, int oldColorAddr, int newColorAddr);
+
 		// IO Board
-		uint16_t getDigitalIO(int addr, int pin);
-		void setDigitalIO(int addr, int pin, int value);
-		uint16_t getADC(int addr, int port);
-		float getADCVoltage(int addr, int port);
+		uint16_t getDigitalIO(int colorAddr, int pin);
+		void setDigitalIO(int colorAddr, int pin, int value);
+		uint16_t getADC(int colorAddr, int port);
+		float getADCVoltage(int colorAddr, int port);
 
 		// Air Mic Sgp
-		float getAirTemperature(int addr);
-		float getAirHumidity(int addr);
-		float getAirPressure(int addr);
-		float getAltitude(int addr);
-		float getMicrophoneFrequency(int addr);
-		float getMicrophoneAmplitude(int addr);
-		float getCO2(int addr);
-		float getTVOC(int addr);
-		float getH2(int addr);
-		float getEthanol(int addr);
+		float getAirTemperature(int colorAddr);
+		float getAirHumidity(int colorAddr);
+		float getAirPressure(int colorAddr);
+		float getAltitude(int colorAddr);
+		float getMicrophoneFrequency(int colorAddr);
+		float getMicrophoneAmplitude(int colorAddr);
+		float getCO2(int colorAddr);
+		float getTVOC(int colorAddr);
+		float getH2(int colorAddr);
+		float getEthanol(int colorAddr);
 
 		// Tof Rgb Uv
-		float getDistance(int addr);
+		float getDistance(int colorAddr);
 		// uint16_t getDistanceStatus(int addr); // TODO
 		// void setDistanceMode(int); // TODO
-		float getUVA(int addr);
-		float getUVB(int addr);
-		float getUVIndex(int addr);
-		uint16_t getColorRed(int addr);
-		uint16_t getColorGreen(int addr);
-		uint16_t getColorBlue(int addr);
-		uint16_t getColorClear(int addr);
-		uint16_t getColorTemp(int addr);
-		uint16_t getColorLux(int addr);
-		uint16_t getIRSensor(int addr);
+		float getUVA(int colorAddr);
+		float getUVB(int colorAddr);
+		float getUVIndex(int colorAddr);
+		uint16_t getColorRed(int colorAddr);
+		uint16_t getColorGreen(int colorAddr);
+		uint16_t getColorBlue(int colorAddr);
+		uint16_t getColorClear(int colorAddr);
+		uint16_t getColorTemp(int colorAddr);
+		uint16_t getColorLux(int colorAddr);
+		uint16_t getIRSensor(int colorAddr);
 		
 		// Internal
 
 		void setBuzzer(int value);
 
 	private:
+		int getDeviceAddrFromColor(int board, int colorAddr);
+
 		bool i2cRead(byte, byte, uint16_t*);
 		bool i2cWrite(byte, byte, uint16_t);
 
