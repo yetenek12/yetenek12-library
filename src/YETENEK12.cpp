@@ -8,18 +8,40 @@ void Sensors::init(int type){
 	}else if(type == 1){
 		selectedComm = commType::modBus;
 		Serial2.begin(MODBUS_SPEED, SERIAL_8N1, 9, 10);
-		pinMode(swPin, OUTPUT);
 		// Switch pin girince calismiyor
 		modbus.begin(ADDR_IO_1, Serial2); // Random address works
 	}
+
+	pinMode(25, OUTPUT); // Buzzer
+	pinMode(13, INPUT); // Button 1
+	pinMode(14, INPUT); // Button 2
+	pinMode(12, OUTPUT); // LED
+	ds18b20.begin(); // Temperature Sensor
+	strip.begin(); // RGB Led
+  	strip.show(); // RGB Led
+  	strip.setBrightness(50); // RGB Led
+
+	// OLED SCREEN
+	Wire1.begin(21, 22, (uint32_t) 400000);
+	display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+	display.clearDisplay();
+	display.setTextSize(2);
+	display.setTextColor(WHITE);
+	display.setCursor(0,0);
+	display.println(F("YETENEK 12"));
+	display.setTextSize(1);
+	display.println();
+	display.print("Version: ");
+	display.println("0.0.1");
+	display.display();
 }
 
 // GLOBAL
 void Sensors::setDefaultAddresses(){
 	// Broadcast all addresses
 }
-void Sensors::setAddress(int board, int oldColorAddr, int newColorAddr){
-	int currentDeviceAddr = getDeviceAddrFromColor(board, oldColorAddr);
+void Sensors::setAddress(int board, int currentColorAddr, int newColorAddr){
+	int currentDeviceAddr = getDeviceAddrFromColor(board, currentColorAddr);
 	int newDeviceAddr = getDeviceAddrFromColor(board, newColorAddr);
 	
 	if(selectedComm == commType::i2c){
@@ -563,10 +585,70 @@ uint16_t Sensors::getIRSensor(int colorAddr){
 		return errorCodes::commTypeNotSelected;
 	}
 }
+// TODO SET LED
+// TODO SET RGB
+
+// TEMP PROBE
+float Sensors::getTempProbe(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::temp, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_TEMP_T_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_TEMP_T_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_DIS_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_DIS_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
 
 // MAIN BOARD
 void Sensors::setBuzzer(int value){
 	digitalWrite(25, value);
+}
+float Sensors::readTemperature(){
+	ds18b20.requestTemperatures();
+	float tempC = ds18b20.getTempCByIndex(0);
+	if(tempC != DEVICE_DISCONNECTED_C) { return tempC; } 
+	else{ return -1; }
+}
+int Sensors::readButton(int value){
+	if(value == 1){ return !digitalRead(13); }
+	else if(value == 2){ return !digitalRead(14); }
+	else{ return -1; }
+}
+void Sensors::setLed(int value){
+	digitalWrite(12, value);
+}
+void Sensors::setRGBBrightness(int value){
+	value = constrain(value, 0, 255);
+	strip.setBrightness(value);
+}
+void Sensors::setRGBWColor(int r, int g, int b, int w){
+	strip.setPixelColor(0, strip.Color(r, g, b, w));
+	strip.show();
+}
+void Sensors::clearScreen(){
+	display.clearDisplay();
+	display.display();
+}
+void Sensors::showScreen(){
+	display.display();
+}
+void Sensors::setScreenText(String value, int size, int color, int x, int y){
+	if(x != -1 && y != -1){ display.setCursor(x, y); }
+	if(color == 1){ display.setTextColor(WHITE); }
+	else if(color == 2){ display.setTextColor(BLACK, WHITE); }
+
+	display.setTextSize(size);
+	display.print(value);
 }
 
 // HELPERS
@@ -579,13 +661,16 @@ bool Sensors::i2cRead(byte addr, byte reg, uint16_t *val){
 	if(Wire.endTransmission(true)){
 		log_e("Wire.endTransmission() error");
 	}
-	uint8_t error = Wire.requestFrom((uint8_t) addr, (uint8_t) 2);
-	if(error){
+	uint8_t Terror = Wire.requestFrom((uint8_t) addr, (uint8_t) 2);
+	if(Terror){
 		byte highByte = (byte) Wire.read();
+		delay(2);
 		byte lowByte = (byte) Wire.read();
 	}else{
 		log_e("Wire.requestFrom() error");
 	}
+
+	// delay(50);
 
 	Wire.beginTransmission(addr);
 	Wire.write((uint8_t)reg);
@@ -593,10 +678,15 @@ bool Sensors::i2cRead(byte addr, byte reg, uint16_t *val){
 		log_e("Wire.endTransmission() error");
 		return false;
 	}
-	error = Wire.requestFrom((uint8_t) addr, (uint8_t) 2);
+	uint8_t error = Wire.requestFrom((uint8_t) addr, (uint8_t) 2);
 	if(error){
 		byte highByte = (byte) Wire.read();
+		delay(2);
 		byte lowByte = (byte) Wire.read();
+		// Serial.print("HIGH BYTE: ");
+		// Serial.print(highByte);
+		// Serial.print(" - LOW BYTE: ");
+		// Serial.println(lowByte);
 		*val = (highByte << 8) | lowByte;
 		return true;
 	}else{
@@ -608,9 +698,10 @@ bool Sensors::i2cWrite(byte addr, byte reg, uint16_t val){
 	Wire.beginTransmission(addr);
 	Wire.write(reg);
 	Wire.write(val);
-	if(Wire.endTransmission(true))
+	if(Wire.endTransmission(true)){
 		log_e("Wire.endTransmission() error");
 		return false;
+	}
 	return true;
 }
 float Sensors::float32_from_two_uint16(uint16_t MSB_uint, uint16_t LSB_uint){
