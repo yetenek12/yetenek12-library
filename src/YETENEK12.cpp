@@ -34,6 +34,9 @@ void Sensors::init(int type){
 	display.print("Version: ");
 	display.println("0.0.1");
 	display.display();
+
+	// SD Card
+	// TODO
 }
 
 // GLOBAL
@@ -50,6 +53,111 @@ void Sensors::setAddress(int board, int currentColorAddr, int newColorAddr){
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(currentDeviceAddr);
 		modbus.uint16ToRegister(ADDR_C_SET_MODBUS_ADDR, newDeviceAddr);
+	}
+}
+uint16_t Sensors::getModuleType(int board, int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(board, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(deviceAddr, ADDR_C_TYPE, &res)){ return res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_C_TYPE, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+uint16_t Sensors::getSerialNumber(int board, int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(board, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(deviceAddr, ADDR_C_SERIAL_NUMBER, &res)){ return res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_C_SERIAL_NUMBER, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+uint16_t Sensors::getModelNumber(int board, int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(board, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(deviceAddr, ADDR_C_MODEL_NUMBER, &res)){ return res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_C_MODEL_NUMBER, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+uint16_t Sensors::getSoftwareVersion(int board, int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(board, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(deviceAddr, ADDR_C_SW_VER, &res)){ return res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_C_SW_VER, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+uint16_t Sensors::getHardwareVersion(int board, int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(board, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(deviceAddr, ADDR_C_HW_VER, &res)){ return res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_C_HW_VER, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+uint16_t Sensors::getDefaultI2CAddress(int board, int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(board, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(deviceAddr, ADDR_C_DEF_I2C_ADDR, &res)){ return res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_C_DEF_I2C_ADDR, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+uint16_t Sensors::getDefaultModBusAddress(int board, int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(board, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(deviceAddr, ADDR_C_DEF_MODBUS_ADDR, &res)){ return res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_C_DEF_MODBUS_ADDR, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
 	}
 }
 
@@ -211,20 +319,20 @@ float Sensors::getADCVoltage(int colorAddr, int port){
 	}
 }
 
-// AIR MIC SGP
+// AIR
 float Sensors::getAirTemperature(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::airmic, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::air, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t val1 = 0, val2 = 0;
-		bool t1 = i2cRead(deviceAddr, ADDR_AMS_TMP_MSB, &val1);
-		bool t2 = i2cRead(deviceAddr, ADDR_AMS_TMP_LSB, &val2);
+		bool t1 = i2cRead(deviceAddr, ADDR_AIR_TMP_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_AIR_TMP_LSB, &val2);
 		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_TMP_MSB, bigEndian);
-		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_TMP_LSB, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_TMP_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_TMP_LSB, bigEndian);
 		return float32_from_two_uint16(val1, val2);
 	
 	}else{
@@ -232,18 +340,18 @@ float Sensors::getAirTemperature(int colorAddr){
 	}
 }
 float Sensors::getAirHumidity(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::airmic, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::air, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t val1 = 0, val2 = 0;
-		bool t1 = i2cRead(deviceAddr, ADDR_AMS_HUM_MSB, &val1);
-		bool t2 = i2cRead(deviceAddr, ADDR_AMS_HUM_LSB, &val2);
+		bool t1 = i2cRead(deviceAddr, ADDR_AIR_HUM_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_AIR_HUM_LSB, &val2);
 		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_HUM_MSB, bigEndian);
-		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_HUM_LSB, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_HUM_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_HUM_LSB, bigEndian);
 		return float32_from_two_uint16(val1, val2);
 	
 	}else{
@@ -251,18 +359,18 @@ float Sensors::getAirHumidity(int colorAddr){
 	}
 }
 float Sensors::getAirPressure(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::airmic, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::air, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t val1 = 0, val2 = 0;
-		bool t1 = i2cRead(deviceAddr, ADDR_AMS_PRE_MSB, &val1);
-		bool t2 = i2cRead(deviceAddr, ADDR_AMS_PRE_LSB, &val2);
+		bool t1 = i2cRead(deviceAddr, ADDR_AIR_PRE_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_AIR_PRE_LSB, &val2);
 		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_PRE_MSB, bigEndian);
-		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_PRE_LSB, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_PRE_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_PRE_LSB, bigEndian);
 		return float32_from_two_uint16(val1, val2);
 	
 	}else{
@@ -270,37 +378,49 @@ float Sensors::getAirPressure(int colorAddr){
 	}
 }
 float Sensors::getAltitude(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::airmic, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::air, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t val1 = 0, val2 = 0;
-		bool t1 = i2cRead(deviceAddr, ADDR_AMS_ALT_MSB, &val1);
-		bool t2 = i2cRead(deviceAddr, ADDR_AMS_ALT_LSB, &val2);
+		bool t1 = i2cRead(deviceAddr, ADDR_AIR_ALT_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_AIR_ALT_LSB, &val2);
 		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_ALT_MSB, bigEndian);
-		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_ALT_LSB, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_ALT_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_ALT_LSB, bigEndian);
 		return float32_from_two_uint16(val1, val2);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
 	}
 }
+void Sensors::setSeaLevel(int colorAddr, float value){
+	int deviceAddr = getDeviceAddrFromColor(boards::air, colorAddr);
+	if(selectedComm == commType::i2c){
+		i2cWrite(deviceAddr, ADDR_AIR_BME_SEA_MSB, MSB_16bit_of_float32(value));
+		i2cWrite(deviceAddr, ADDR_AIR_BME_SEA_LSB, LSB_16bit_of_float32(value));
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		modbus.uint16ToRegister(ADDR_AIR_BME_SEA_MSB, MSB_16bit_of_float32(value));
+		modbus.uint16ToRegister(ADDR_AIR_BME_SEA_LSB, LSB_16bit_of_float32(value));
+	}
+}
 float Sensors::getMicrophoneFrequency(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::airmic, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::air, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t val1 = 0, val2 = 0;
-		bool t1 = i2cRead(deviceAddr, ADDR_AMS_SF_MSB, &val1);
-		bool t2 = i2cRead(deviceAddr, ADDR_AMS_SF_LSB, &val2);
+		bool t1 = i2cRead(deviceAddr, ADDR_AIR_SF_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_AIR_SF_LSB, &val2);
 		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_SF_MSB, bigEndian);
-		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_SF_LSB, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_SF_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_SF_LSB, bigEndian);
 		return float32_from_two_uint16(val1, val2);
 	
 	}else{
@@ -308,18 +428,18 @@ float Sensors::getMicrophoneFrequency(int colorAddr){
 	}
 }
 float Sensors::getMicrophoneAmplitude(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::airmic, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::air, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t val1 = 0, val2 = 0;
-		bool t1 = i2cRead(deviceAddr, ADDR_AMS_SA_MSB, &val1);
-		bool t2 = i2cRead(deviceAddr, ADDR_AMS_SA_LSB, &val2);
+		bool t1 = i2cRead(deviceAddr, ADDR_AIR_SA_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_AIR_SA_LSB, &val2);
 		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_SA_MSB, bigEndian);
-		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_SA_LSB, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_SA_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_SA_LSB, bigEndian);
 		return float32_from_two_uint16(val1, val2);
 	
 	}else{
@@ -327,18 +447,18 @@ float Sensors::getMicrophoneAmplitude(int colorAddr){
 	}
 }
 float Sensors::getCO2(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::airmic, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::air, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t val1 = 0, val2 = 0;
-		bool t1 = i2cRead(deviceAddr, ADDR_AMS_CO2_MSB, &val1);
-		bool t2 = i2cRead(deviceAddr, ADDR_AMS_CO2_LSB, &val2);
+		bool t1 = i2cRead(deviceAddr, ADDR_AIR_CO2_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_AIR_CO2_LSB, &val2);
 		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_CO2_MSB, bigEndian);
-		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_CO2_LSB, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_CO2_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_CO2_LSB, bigEndian);
 		return float32_from_two_uint16(val1, val2);
 	
 	}else{
@@ -346,18 +466,18 @@ float Sensors::getCO2(int colorAddr){
 	}
 }
 float Sensors::getTVOC(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::airmic, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::air, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t val1 = 0, val2 = 0;
-		bool t1 = i2cRead(deviceAddr, ADDR_AMS_TVOC_MSB, &val1);
-		bool t2 = i2cRead(deviceAddr, ADDR_AMS_TVOC_LSB, &val2);
+		bool t1 = i2cRead(deviceAddr, ADDR_AIR_TVOC_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_AIR_TVOC_LSB, &val2);
 		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_TVOC_MSB, bigEndian);
-		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_TVOC_LSB, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_TVOC_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_TVOC_LSB, bigEndian);
 		return float32_from_two_uint16(val1, val2);
 	
 	}else{
@@ -365,18 +485,18 @@ float Sensors::getTVOC(int colorAddr){
 	}
 }
 float Sensors::getH2(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::airmic, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::air, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t val1 = 0, val2 = 0;
-		bool t1 = i2cRead(deviceAddr, ADDR_AMS_H2_MSB, &val1);
-		bool t2 = i2cRead(deviceAddr, ADDR_AMS_H2_LSB, &val2);
+		bool t1 = i2cRead(deviceAddr, ADDR_AIR_H2_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_AIR_H2_LSB, &val2);
 		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_H2_MSB, bigEndian);
-		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_H2_LSB, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_H2_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_H2_LSB, bigEndian);
 		return float32_from_two_uint16(val1, val2);
 	
 	}else{
@@ -384,18 +504,18 @@ float Sensors::getH2(int colorAddr){
 	}
 }
 float Sensors::getEthanol(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::airmic, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::air, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t val1 = 0, val2 = 0;
-		bool t1 = i2cRead(deviceAddr, ADDR_AMS_ETH_MSB, &val1);
-		bool t2 = i2cRead(deviceAddr, ADDR_AMS_ETH_LSB, &val2);
+		bool t1 = i2cRead(deviceAddr, ADDR_AIR_ETH_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_AIR_ETH_LSB, &val2);
 		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_ETH_MSB, bigEndian);
-		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AMS_ETH_LSB, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_ETH_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_AIR_ETH_LSB, bigEndian);
 		return float32_from_two_uint16(val1, val2);
 	
 	}else{
@@ -403,39 +523,64 @@ float Sensors::getEthanol(int colorAddr){
 	}
 }
 
-// TOF RGB UV
+// OPTICS
 float Sensors::getDistance(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::tofrgb, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::optics, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t val1 = 0, val2 = 0;
-		bool t1 = i2cRead(deviceAddr, ADDR_TRU_DIS_MSB, &val1);
-		bool t2 = i2cRead(deviceAddr, ADDR_TRU_DIS_LSB, &val2);
+		bool t1 = i2cRead(deviceAddr, ADDR_OPT_DIS_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_OPT_DIS_LSB, &val2);
 		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_DIS_MSB, bigEndian);
-		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_DIS_LSB, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_OPT_DIS_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_OPT_DIS_LSB, bigEndian);
 		return float32_from_two_uint16(val1, val2);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
+	}
+}
+uint16_t Sensors::getDistanceStatus(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::optics, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(deviceAddr, ADDR_OPT_DIS_STA, &res)){ return res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_OPT_DIS_STA, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+void Sensors::setDistanceMode(int colorAddr, int value){
+	int deviceAddr = getDeviceAddrFromColor(boards::optics, colorAddr);
+	if(selectedComm == commType::i2c){
+		i2cWrite(deviceAddr, ADDR_OPT_DIS_M, value);
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		modbus.uint16ToRegister(ADDR_OPT_DIS_M, value);
 	}
 }
 float Sensors::getUVA(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::tofrgb, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::optics, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t val1 = 0, val2 = 0;
-		bool t1 = i2cRead(deviceAddr, ADDR_TRU_A_MSB, &val1);
-		bool t2 = i2cRead(deviceAddr, ADDR_TRU_A_LSB, &val2);
+		bool t1 = i2cRead(deviceAddr, ADDR_OPT_A_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_OPT_A_LSB, &val2);
 		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_A_MSB, bigEndian);
-		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_A_LSB, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_OPT_A_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_OPT_A_LSB, bigEndian);
 		return float32_from_two_uint16(val1, val2);
 	
 	}else{
@@ -443,18 +588,18 @@ float Sensors::getUVA(int colorAddr){
 	}
 }
 float Sensors::getUVB(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::tofrgb, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::optics, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t val1 = 0, val2 = 0;
-		bool t1 = i2cRead(deviceAddr, ADDR_TRU_B_MSB, &val1);
-		bool t2 = i2cRead(deviceAddr, ADDR_TRU_B_LSB, &val2);
+		bool t1 = i2cRead(deviceAddr, ADDR_OPT_B_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_OPT_B_LSB, &val2);
 		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_B_MSB, bigEndian);
-		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_B_LSB, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_OPT_B_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_OPT_B_LSB, bigEndian);
 		return float32_from_two_uint16(val1, val2);
 	
 	}else{
@@ -462,18 +607,18 @@ float Sensors::getUVB(int colorAddr){
 	}
 }
 float Sensors::getUVIndex(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::tofrgb, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::optics, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t val1 = 0, val2 = 0;
-		bool t1 = i2cRead(deviceAddr, ADDR_TRU_I_MSB, &val1);
-		bool t2 = i2cRead(deviceAddr, ADDR_TRU_I_LSB, &val2);
+		bool t1 = i2cRead(deviceAddr, ADDR_OPT_I_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_OPT_I_LSB, &val2);
 		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
 		else{ return -1; };
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_I_MSB, bigEndian);
-		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_I_LSB, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_OPT_I_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_OPT_I_LSB, bigEndian);
 		return float32_from_two_uint16(val1, val2);
 	
 	}else{
@@ -481,105 +626,105 @@ float Sensors::getUVIndex(int colorAddr){
 	}
 }
 uint16_t Sensors::getColorRed(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::tofrgb, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::optics, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t res = 0;
-		if(i2cRead(deviceAddr, ADDR_TRU_C_R, &res)){ return res; }
+		if(i2cRead(deviceAddr, ADDR_OPT_C_R, &res)){ return res; }
 		else{ return 0; }
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_TRU_C_R, bigEndian);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_OPT_C_R, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
 	}
 }
 uint16_t Sensors::getColorGreen(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::tofrgb, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::optics, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t res = 0;
-		if(i2cRead(deviceAddr, ADDR_TRU_C_G, &res)){ return res; }
+		if(i2cRead(deviceAddr, ADDR_OPT_C_G, &res)){ return res; }
 		else{ return 0; }
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_TRU_C_G, bigEndian);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_OPT_C_G, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
 	}
 }
 uint16_t Sensors::getColorBlue(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::tofrgb, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::optics, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t res = 0;
-		if(i2cRead(deviceAddr, ADDR_TRU_C_B, &res)){ return res; }
+		if(i2cRead(deviceAddr, ADDR_OPT_C_B, &res)){ return res; }
 		else{ return 0; }
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_TRU_C_B, bigEndian);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_OPT_C_B, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
 	}
 }
 uint16_t Sensors::getColorClear(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::tofrgb, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::optics, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t res = 0;
-		if(i2cRead(deviceAddr, ADDR_TRU_C_C, &res)){ return res; }
+		if(i2cRead(deviceAddr, ADDR_OPT_C_C, &res)){ return res; }
 		else{ return 0; }
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_TRU_C_C, bigEndian);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_OPT_C_C, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
 	}
 }
 uint16_t Sensors::getColorTemp(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::tofrgb, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::optics, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t res = 0;
-		if(i2cRead(deviceAddr, ADDR_TRU_C_T, &res)){ return res; }
+		if(i2cRead(deviceAddr, ADDR_OPT_C_T, &res)){ return res; }
 		else{ return 0; }
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_TRU_C_T, bigEndian);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_OPT_C_T, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
 	}
 }
 uint16_t Sensors::getColorLux(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::tofrgb, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::optics, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t res = 0;
-		if(i2cRead(deviceAddr, ADDR_TRU_C_L, &res)){ return res; }
+		if(i2cRead(deviceAddr, ADDR_OPT_C_L, &res)){ return res; }
 		else{ return 0; }
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_TRU_C_L, bigEndian);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_OPT_C_L, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
 	}
 }
 uint16_t Sensors::getIRSensor(int colorAddr){
-	int deviceAddr = getDeviceAddrFromColor(boards::tofrgb, colorAddr);
+	int deviceAddr = getDeviceAddrFromColor(boards::optics, colorAddr);
 	if(selectedComm == commType::i2c){
 		uint16_t res = 0;
-		if(i2cRead(deviceAddr, ADDR_TRU_IR, &res)){ return res; }
+		if(i2cRead(deviceAddr, ADDR_OPT_IR, &res)){ return res; }
 		else{ return 0; }
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_TRU_IR, bigEndian);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_OPT_IR, bigEndian);
 	
 	}else{
 		return errorCodes::commTypeNotSelected;
@@ -600,8 +745,215 @@ float Sensors::getTempProbe(int colorAddr){
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_DIS_MSB, bigEndian);
-		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TRU_DIS_LSB, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_OPT_DIS_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_OPT_DIS_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+
+// IMU
+float Sensors::getAccelX(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::imu, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_IMU_ACCX_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_IMU_ACCX_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_ACCX_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_ACCX_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getAccelY(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::imu, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_IMU_ACCY_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_IMU_ACCY_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_ACCY_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_ACCY_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getAccelZ(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::imu, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_IMU_ACCZ_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_IMU_ACCZ_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_ACCZ_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_ACCZ_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getGyroX(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::imu, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_IMU_GYRX_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_IMU_GYRX_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_GYRX_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_GYRX_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getGyroY(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::imu, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_IMU_GYRY_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_IMU_GYRY_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_GYRY_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_GYRY_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getGyroZ(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::imu, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_IMU_GYRZ_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_IMU_GYRZ_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_GYRZ_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_GYRZ_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getMagX(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::imu, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_IMU_MAGX_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_IMU_MAGX_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_MAGX_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_MAGX_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getMagY(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::imu, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_IMU_MAGY_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_IMU_MAGY_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_MAGY_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_MAGY_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getMagZ(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::imu, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_IMU_MAGZ_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_IMU_MAGZ_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_MAGZ_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_MAGZ_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+uint16_t Sensors::getHeading(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::imu, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(deviceAddr, ADDR_IMU_HDG, &res)){ return res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, ADDR_IMU_HDG, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getImuTemp(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::imu, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_IMU_TEMP9_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_IMU_TEMP9_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_TEMP9_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_TEMP9_LSB, bigEndian);
 		return float32_from_two_uint16(val1, val2);
 	
 	}else{
@@ -637,7 +989,7 @@ void Sensors::setRGBWColor(int r, int g, int b, int w){
 }
 void Sensors::clearScreen(){
 	display.clearDisplay();
-	display.display();
+	// display.display();
 }
 void Sensors::showScreen(){
 	display.display();
@@ -670,8 +1022,6 @@ bool Sensors::i2cRead(byte addr, byte reg, uint16_t *val){
 		log_e("Wire.requestFrom() error");
 	}
 
-	// delay(50);
-
 	Wire.beginTransmission(addr);
 	Wire.write((uint8_t)reg);
 	if(Wire.endTransmission(true)){
@@ -683,10 +1033,6 @@ bool Sensors::i2cRead(byte addr, byte reg, uint16_t *val){
 		byte highByte = (byte) Wire.read();
 		delay(2);
 		byte lowByte = (byte) Wire.read();
-		// Serial.print("HIGH BYTE: ");
-		// Serial.print(highByte);
-		// Serial.print(" - LOW BYTE: ");
-		// Serial.println(lowByte);
 		*val = (highByte << 8) | lowByte;
 		return true;
 	}else{
@@ -712,6 +1058,24 @@ float Sensors::float32_from_two_uint16(uint16_t MSB_uint, uint16_t LSB_uint){
 	union_for_conv.uint16_arr[0] = LSB_uint;
 	union_for_conv.uint16_arr[1] = MSB_uint;
 	return union_for_conv.f_number;
+}
+uint16_t Sensors::MSB_16bit_of_float32(float float_number){
+	union{
+		float f_number;
+		uint16_t uint16_arr[2];
+	} union_for_conv;  
+	union_for_conv.f_number = float_number;
+	uint16_t MSB_uint16 = union_for_conv.uint16_arr[1];
+	return MSB_uint16;
+}
+uint16_t Sensors::LSB_16bit_of_float32(float float_number){
+	union{
+		float f_number;
+		uint16_t uint16_arr[2];
+	} union_for_conv;  
+	union_for_conv.f_number = float_number;
+	uint16_t LSB_uint16 = union_for_conv.uint16_arr[0];
+	return LSB_uint16;
 }
 int Sensors::getDeviceAddrFromColor(int board, int colorAddr){
 	int deviceAddr = -1;
@@ -742,54 +1106,54 @@ int Sensors::getDeviceAddrFromColor(int board, int colorAddr){
 			}
 			break;
 
-		case boards::airmic:
+		case boards::air:
 			switch (colorAddr){
 				case colorCodes::green:
-					deviceAddr = ADDR_AMS_1;
+					deviceAddr = ADDR_AIR_1;
 					break;
 				case colorCodes::blue:
-					deviceAddr = ADDR_AMS_2;
+					deviceAddr = ADDR_AIR_2;
 					break;
 				case colorCodes::orange:
-					deviceAddr = ADDR_AMS_3;
+					deviceAddr = ADDR_AIR_3;
 					break;
 				case colorCodes::yellow:
-					deviceAddr = ADDR_AMS_4;
+					deviceAddr = ADDR_AIR_4;
 					break;
 				case colorCodes::turquoise:
-					deviceAddr = ADDR_AMS_5;
+					deviceAddr = ADDR_AIR_5;
 					break;
 				case colorCodes::purple:
-					deviceAddr = ADDR_AMS_6;
+					deviceAddr = ADDR_AIR_6;
 					break;
 				default:
-					deviceAddr = ADDR_AMS_1;
+					deviceAddr = ADDR_AIR_1;
 					break;
 			}
 			break;
 
-		case boards::tofrgb:
+		case boards::optics:
 			switch (colorAddr){
 				case colorCodes::green:
-					deviceAddr = ADDR_TRU_1;
+					deviceAddr = ADDR_OPT_1;
 					break;
 				case colorCodes::blue:
-					deviceAddr = ADDR_TRU_2;
+					deviceAddr = ADDR_OPT_2;
 					break;
 				case colorCodes::orange:
-					deviceAddr = ADDR_TRU_3;
+					deviceAddr = ADDR_OPT_3;
 					break;
 				case colorCodes::yellow:
-					deviceAddr = ADDR_TRU_4;
+					deviceAddr = ADDR_OPT_4;
 					break;
 				case colorCodes::turquoise:
-					deviceAddr = ADDR_TRU_5;
+					deviceAddr = ADDR_OPT_5;
 					break;
 				case colorCodes::purple:
-					deviceAddr = ADDR_TRU_6;
+					deviceAddr = ADDR_OPT_6;
 					break;
 				default:
-					deviceAddr = ADDR_TRU_1;
+					deviceAddr = ADDR_OPT_1;
 					break;
 			}
 			break;
@@ -797,25 +1161,25 @@ int Sensors::getDeviceAddrFromColor(int board, int colorAddr){
 		case boards::imu:
 			switch (colorAddr){
 				case colorCodes::green:
-					deviceAddr = ADDR_DOF9_1;
+					deviceAddr = ADDR_IMU_1;
 					break;
 				case colorCodes::blue:
-					deviceAddr = ADDR_DOF9_2;
+					deviceAddr = ADDR_IMU_2;
 					break;
 				case colorCodes::orange:
-					deviceAddr = ADDR_DOF9_3;
+					deviceAddr = ADDR_IMU_3;
 					break;
 				case colorCodes::yellow:
-					deviceAddr = ADDR_DOF9_4;
+					deviceAddr = ADDR_IMU_4;
 					break;
 				case colorCodes::turquoise:
-					deviceAddr = ADDR_DOF9_5;
+					deviceAddr = ADDR_IMU_5;
 					break;
 				case colorCodes::purple:
-					deviceAddr = ADDR_DOF9_6;
+					deviceAddr = ADDR_IMU_6;
 					break;
 				default:
-					deviceAddr = ADDR_DOF9_1;
+					deviceAddr = ADDR_IMU_1;
 					break;
 			}
 			break;

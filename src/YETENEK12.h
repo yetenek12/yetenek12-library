@@ -4,11 +4,21 @@
 #include <Wire.h>
 #include <SensorModbusMaster.h>
 #include <addr/defines.h>
+#include <Adafruit_NeoPixel.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <Adafruit_NeoPixel.h>
+#include "FS.h"
+#include "SD.h"
+#include "SPI.h"
+
+// Model Numbers
+#define MK3    1
+#define MK4    2
+#define IO_V1  3
+#define MB_V1  4 // Main Board V1
+#define MB_V2  5 // Main Board V1.1
 
 class Sensors
 {
@@ -25,6 +35,11 @@ class Sensors
 
 		Sensors();
 
+		/**
+		 * @brief Start communucation
+		 * 
+		 * @param type  0 for I2C Mode, 1 for ModBus Mode
+		 */
 		void init(int type); // 0 => i2c Mode , 1 => ModBus
 
 		enum commType{
@@ -47,31 +62,38 @@ class Sensors
 
 		enum boards{
 			io = 1,
-			airmic,
-			tofrgb,
+			air,
+			optics,
 			imu,
 			temp,
 			motor,
 			gps
 		};
 
-		// byte checkComm(modbusMaster,TwoWire,byte addr);
-
 		// Global
+		// TODO GET Connected Boards
 		void setDefaultAddresses();
 		void setAddress(int board, int currentColorAddr, int newColorAddr);
+		uint16_t getModuleType(int board, int colorAddr);
+		uint16_t getSerialNumber(int board, int colorAddr);
+		uint16_t getModelNumber(int board, int colorAddr);
+		uint16_t getSoftwareVersion(int board, int colorAddr);
+		uint16_t getHardwareVersion(int board, int colorAddr);
+		uint16_t getDefaultI2CAddress(int board, int colorAddr);
+		uint16_t getDefaultModBusAddress(int board, int colorAddr);
 
-		// IO Board
+		// IO
 		uint16_t getDigitalIO(int colorAddr, int pin);
 		void setDigitalIO(int colorAddr, int pin, int value);
 		uint16_t getADC(int colorAddr, int port);
 		float getADCVoltage(int colorAddr, int port);
 
-		// Air Mic Sgp
+		// Air
 		float getAirTemperature(int colorAddr);
 		float getAirHumidity(int colorAddr);
 		float getAirPressure(int colorAddr);
 		float getAltitude(int colorAddr);
+		void setSeaLevel(int colorAddr, float value);
 		float getMicrophoneFrequency(int colorAddr);
 		float getMicrophoneAmplitude(int colorAddr);
 		float getCO2(int colorAddr);
@@ -79,10 +101,10 @@ class Sensors
 		float getH2(int colorAddr);
 		float getEthanol(int colorAddr);
 
-		// Tof Rgb Uv
+		// Optics
 		float getDistance(int colorAddr);
-		// uint16_t getDistanceStatus(int addr); // TODO
-		// void setDistanceMode(int); // TODO
+		uint16_t getDistanceStatus(int colorAddr);
+		void setDistanceMode(int colorAddr, int value);
 		float getUVA(int colorAddr);
 		float getUVB(int colorAddr);
 		float getUVIndex(int colorAddr);
@@ -94,8 +116,22 @@ class Sensors
 		uint16_t getColorLux(int colorAddr);
 		uint16_t getIRSensor(int colorAddr);
 
+		// Temp Probe
 		float getTempProbe(int colorAddr);
 		
+		// IMU
+		float getAccelX(int colorAddr);
+		float getAccelY(int colorAddr);
+		float getAccelZ(int colorAddr);
+		float getGyroX(int colorAddr);
+		float getGyroY(int colorAddr);
+		float getGyroZ(int colorAddr);
+		float getMagX(int colorAddr);
+		float getMagY(int colorAddr);
+		float getMagZ(int colorAddr);
+		uint16_t getHeading(int colorAddr);
+		float getImuTemp(int colorAddr);
+
 		// Internal
 		void setBuzzer(int value);
 		float readTemperature();
@@ -113,6 +149,8 @@ class Sensors
 		bool i2cRead(byte, byte, uint16_t*);
 		bool i2cWrite(byte, byte, uint16_t);
 
+		uint16_t MSB_16bit_of_float32(float float_number);
+		uint16_t LSB_16bit_of_float32(float float_number);
 		float float32_from_two_uint16(uint16_t MSB_uint, uint16_t LSB_uint);
 
 };
