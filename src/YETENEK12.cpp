@@ -980,7 +980,7 @@ void Sensors::setLed(int value){
 	digitalWrite(12, value);
 }
 void Sensors::setRGBWColor(int r, int g, int b, int w, int brightness){
-    strip.setBrightness(bright);
+    strip.setBrightness(brightness);
 	strip.setPixelColor(0, strip.Color(r, g, b, w));
 	strip.show();
 }
