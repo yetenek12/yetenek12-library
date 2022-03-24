@@ -137,8 +137,7 @@ class Sensors
 		float readTemperature();
 		int readButton(int value);
 		void setLed(int value);
-		void setRGBBrightness(int value);
-		void setRGBWColor(int r, int g, int b, int w);
+		void setRGBWColor(int r, int g, int b, int w, int brightness);
 		void clearScreen();
 		void showScreen();
 		void setScreenText(String value, int size = 1, int color = 1, int x = -1, int y = -1);

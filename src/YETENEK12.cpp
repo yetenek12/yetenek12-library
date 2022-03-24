@@ -979,11 +979,8 @@ int Sensors::readButton(int value){
 void Sensors::setLed(int value){
 	digitalWrite(12, value);
 }
-void Sensors::setRGBBrightness(int value){
-	value = constrain(value, 0, 255);
-	strip.setBrightness(value);
-}
-void Sensors::setRGBWColor(int r, int g, int b, int w){
+void Sensors::setRGBWColor(int r, int g, int b, int w, int brightness){
+    strip.setBrightness(bright);
 	strip.setPixelColor(0, strip.Color(r, g, b, w));
 	strip.show();
 }
