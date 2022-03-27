@@ -34,6 +34,7 @@ void Sensors::init(int type){
 	display.print("Version: ");
 	display.println("0.0.1");
 	display.display();
+	display.clearDisplay();
 
 	// SD Card
 	// TODO
@@ -998,6 +999,22 @@ void Sensors::setScreenText(String value, int size, int color, int x, int y){
 
 	display.setTextSize(size);
 	display.print(value);
+}
+void Sensors::setScreenText(int value, int size, int color, int x, int y){
+	if(x != -1 && y != -1){ display.setCursor(x, y); }
+	if(color == 1){ display.setTextColor(WHITE); }
+	else if(color == 2){ display.setTextColor(BLACK, WHITE); }
+
+	display.setTextSize(size);
+	display.print(String(value));
+}
+void Sensors::setScreenText(float value, int size, int color, int x, int y){
+	if(x != -1 && y != -1){ display.setCursor(x, y); }
+	if(color == 1){ display.setTextColor(WHITE); }
+	else if(color == 2){ display.setTextColor(BLACK, WHITE); }
+
+	display.setTextSize(size);
+	display.print(String(value));
 }
 
 // HELPERS

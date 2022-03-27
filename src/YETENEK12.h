@@ -141,6 +141,8 @@ class Sensors
 		void clearScreen();
 		void showScreen();
 		void setScreenText(String value, int size = 1, int color = 1, int x = -1, int y = -1);
+		void setScreenText(int value, int size = 1, int color = 1, int x = -1, int y = -1);
+		void setScreenText(float value, int size = 1, int color = 1, int x = -1, int y = -1);
 
 	private:
 		int getDeviceAddrFromColor(int board, int colorAddr);
