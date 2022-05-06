@@ -746,8 +746,8 @@ float Sensors::getTempProbe(int colorAddr){
 
 	}else if(selectedComm == commType::modBus){
 		modbus.setSlaveID(deviceAddr);
-		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_OPT_DIS_MSB, bigEndian);
-		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_OPT_DIS_LSB, bigEndian);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TEMP_T_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_TEMP_T_LSB, bigEndian);
 		return float32_from_two_uint16(val1, val2);
 	
 	}else{
