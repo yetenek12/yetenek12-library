@@ -140,6 +140,7 @@ class Sensors
 		void setRGBWColor(int r, int g, int b, int w, int brightness);
 		void clearScreen();
 		void showScreen();
+		void screenNewLine();
 		void setScreenText(String value, int size = 1, int color = 1, int x = -1, int y = -1);
 		void setScreenText(int value, int size = 1, int color = 1, int x = -1, int y = -1);
 		void setScreenText(float value, int size = 1, int color = 1, int x = -1, int y = -1);

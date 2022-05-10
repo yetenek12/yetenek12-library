@@ -24,6 +24,7 @@ void Sensors::init(int type){
 	// OLED SCREEN
 	Wire1.begin(21, 22, (uint32_t) 400000);
 	display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+	display.setRotation(2);
 	display.clearDisplay();
 	display.setTextSize(2);
 	display.setTextColor(WHITE);
@@ -991,6 +992,9 @@ void Sensors::clearScreen(){
 }
 void Sensors::showScreen(){
 	display.display();
+}
+void Sensors::screenNewLine(){
+	display.println();
 }
 void Sensors::setScreenText(String value, int size, int color, int x, int y){
 	if(x != -1 && y != -1){ display.setCursor(x, y); }
