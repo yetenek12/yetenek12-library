@@ -17,8 +17,9 @@
 #define MK3    1
 #define MK4    2
 #define IO_V1  3
-#define MB_V1  4 // Main Board V1
-#define MB_V2  5 // Main Board V1.1
+#define IO_V2  4
+#define MB_V1  5 // Main Board V1
+#define MB_V2  6 // Main Board V1.1
 
 class Sensors
 {
@@ -71,8 +72,7 @@ class Sensors
 		};
 
 		// Global
-		// TODO GET Connected Boards
-		void setDefaultAddresses();
+		void setDefaultAddress(int board);
 		void setAddress(int board, int currentColorAddr, int newColorAddr);
 		uint16_t getModuleType(int board, int colorAddr);
 		uint16_t getSerialNumber(int board, int colorAddr);
@@ -115,6 +115,8 @@ class Sensors
 		uint16_t getColorTemp(int colorAddr);
 		uint16_t getColorLux(int colorAddr);
 		uint16_t getIRSensor(int colorAddr);
+		void setOpticsLed(int colorAddr, int value);
+		void setOpticsRGBWColor(int colorAddr, int r, int g, int b, int w, int brightness);
 
 		// Temp Probe
 		float getTempProbe(int colorAddr);
@@ -132,6 +134,14 @@ class Sensors
 		uint16_t getHeading(int colorAddr);
 		float getImuTemp(int colorAddr);
 
+		// Motor
+		void setMotorSpeed(int colorAddr, int motor, int value);
+		void setMotorDirection(int colorAddr, int motor, int value);
+		float getMotorSpeed(int colorAddr, int motor);
+		float getMotorPosition(int colorAddr, int motor);
+		float getMotorVoltage(int colorAddr);
+		
+
 		// Internal
 		void setBuzzer(int value);
 		float readTemperature();
@@ -144,6 +154,21 @@ class Sensors
 		void setScreenText(String value, int size = 1, int color = 1, int x = -1, int y = -1);
 		void setScreenText(int value, int size = 1, int color = 1, int x = -1, int y = -1);
 		void setScreenText(float value, int size = 1, int color = 1, int x = -1, int y = -1);
+
+		// Helpers
+		float calculateWindDirection(float voltage);
+		float calculateWindSpeed(float voltage);
+		float calculateRainfall(float voltage);
+		float windAngle = 0;
+		bool anemometerWaitTick = true;
+		unsigned long anemometerLastTicks[2] = {0, 0};
+		float anemometerSpeed = 0;
+		bool anemometerRainfallSwitch = false;
+		float anemometerHourlyRain = 0;
+		unsigned long anemometerHourlyRainReset = 0;
+
+		// Wireless Connection
+		
 
 	private:
 		int getDeviceAddrFromColor(int board, int colorAddr);

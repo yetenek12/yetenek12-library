@@ -42,8 +42,11 @@ void Sensors::init(int type){
 }
 
 // GLOBAL
-void Sensors::setDefaultAddresses(){
+void Sensors::setDefaultAddress(int board){
 	// Broadcast all addresses
+	for(int i = 1; i < 7; i++){
+		setAddress(board, i, 1);
+	}
 }
 void Sensors::setAddress(int board, int currentColorAddr, int newColorAddr){
 	int currentDeviceAddr = getDeviceAddrFromColor(board, currentColorAddr);
@@ -732,8 +735,12 @@ uint16_t Sensors::getIRSensor(int colorAddr){
 		return errorCodes::commTypeNotSelected;
 	}
 }
-// TODO SET LED
-// TODO SET RGB
+void Sensors::setOpticsLed(int colorAddr, int value){
+	// TODO SET LED
+}
+void Sensors::setOpticsRGBWColor(int colorAddr, int r, int g, int b, int w, int brightness){
+    // TODO
+}
 
 // TEMP PROBE
 float Sensors::getTempProbe(int colorAddr){
@@ -956,6 +963,97 @@ float Sensors::getImuTemp(int colorAddr){
 		modbus.setSlaveID(deviceAddr);
 		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_TEMP9_MSB, bigEndian);
 		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_IMU_TEMP9_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+
+// MOTOR
+void Sensors::setMotorSpeed(int colorAddr, int motor, int value){
+	int deviceAddr = getDeviceAddrFromColor(boards::motor, colorAddr);
+	int requestRegister = 0;
+	if(motor == 1){ requestRegister = ADDR_MOTOR_LEFT_SPEED; }
+	else if(motor == 2){ requestRegister = ADDR_MOTOR_RIGHT_SPEED; }
+	if(selectedComm == commType::i2c){
+		i2cWrite(deviceAddr, requestRegister, value);
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		modbus.uint16ToRegister(requestRegister, value);
+	}
+}
+void Sensors::setMotorDirection(int colorAddr, int motor, int value){
+	int deviceAddr = getDeviceAddrFromColor(boards::motor, colorAddr);
+	int requestRegister = 0;
+	if(motor == 1){ requestRegister = ADDR_MOTOR_LEFT_DIR; }
+	else if(motor == 2){ requestRegister = ADDR_MOTOR_RIGHT_DIR; }
+	if(selectedComm == commType::i2c){
+		i2cWrite(deviceAddr, requestRegister, value);
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		modbus.uint16ToRegister(requestRegister, value);
+	}
+}
+float Sensors::getMotorSpeed(int colorAddr, int motor){
+	int deviceAddr = getDeviceAddrFromColor(boards::motor, colorAddr);
+	byte READ_MSB, READ_LSB;
+	if(motor == 1){ READ_MSB = ADDR_MOTOR_RIGHT_VEL_MSB; READ_LSB = ADDR_MOTOR_RIGHT_VEL_LSB; }
+	else if(motor == 2){ READ_MSB = ADDR_MOTOR_LEFT_VEL_MSB; READ_LSB = ADDR_MOTOR_LEFT_VEL_LSB; }
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, READ_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, READ_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, READ_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, READ_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getMotorPosition(int colorAddr, int motor){
+	int deviceAddr = getDeviceAddrFromColor(boards::motor, colorAddr);
+	byte READ_MSB, READ_LSB;
+	if(motor == 1){ READ_MSB = ADDR_MOTOR_RIGHT_POS_MSB; READ_LSB = ADDR_MOTOR_RIGHT_POS_LSB; }
+	else if(motor == 2){ READ_MSB = ADDR_MOTOR_LEFT_POS_MSB; READ_LSB = ADDR_MOTOR_LEFT_POS_LSB; }
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, READ_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, READ_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, READ_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, READ_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getMotorVoltage(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::motor, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_MOTOR_BUS_VOLTAGE_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_MOTOR_BUS_VOLTAGE_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_MOTOR_BUS_VOLTAGE_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_MOTOR_BUS_VOLTAGE_LSB, bigEndian);
 		return float32_from_two_uint16(val1, val2);
 	
 	}else{
@@ -1228,10 +1326,96 @@ int Sensors::getDeviceAddrFromColor(int board, int colorAddr){
 			}
 			break;
 
+		case boards::motor:
+			switch (colorAddr){
+				case colorCodes::green:
+					deviceAddr = ADDR_MOTOR_1;
+					break;
+				case colorCodes::blue:
+					deviceAddr = ADDR_MOTOR_2;
+					break;
+				case colorCodes::orange:
+					deviceAddr = ADDR_MOTOR_3;
+					break;
+				case colorCodes::yellow:
+					deviceAddr = ADDR_MOTOR_4;
+					break;
+				case colorCodes::turquoise:
+					deviceAddr = ADDR_MOTOR_5;
+					break;
+				case colorCodes::purple:
+					deviceAddr = ADDR_MOTOR_6;
+					break;
+				default:
+					deviceAddr = ADDR_MOTOR_1;
+					break;
+			}
+			break;
+
 		default:
 			break;
 	}
 	return deviceAddr;
+}
+
+// BUOY MODULE
+float Sensors::calculateWindDirection(float voltage){
+	String val = String(voltage);
+	val.replace(".", "");
+	int volt = val.toInt();
+
+	if(volt > 124 && volt < 128){ windAngle = 0;}
+	else if(volt > 107 && volt < 111){ windAngle = 22.5;}
+	else if(volt > 237 && volt < 241){ windAngle = 45;}
+	else if(volt > 228 && volt < 232){ windAngle = 67.5;}
+	else if(volt > 318 && volt < 322){ windAngle = 90;}
+	else if(volt > 290 && volt < 294){ windAngle = 112.5;}
+	else if(volt > 305 && volt < 309){ windAngle = 135;}
+	else if(volt > 258 && volt < 262){ windAngle = 157.5;}
+	else if(volt > 280 && volt < 284){ windAngle = 180;}
+	else if(volt > 167 && volt < 171){ windAngle = 202.5;}
+	else if(volt > 185 && volt < 189){ windAngle = 225;}
+	else if(volt > 38 && volt < 42){ windAngle = 247.5;}
+	else if(volt > 42 && volt < 46){ windAngle = 270;}
+	else if(volt > 30 && volt < 34){ windAngle = 292.5;}
+	else if(volt > 82 && volt < 86){ windAngle = 315;}
+	else if(volt > 57 && volt < 61){ windAngle = 337.5;}
+
+	return windAngle;
+}
+float Sensors::calculateWindSpeed(float voltage){
+	if(voltage > 2.5){
+		// Tick
+		if(anemometerWaitTick){
+			anemometerWaitTick = false;
+			anemometerLastTicks[1] = anemometerLastTicks[0];
+			anemometerLastTicks[0] = millis();
+
+			// Calculate the time between the last two ticks
+			unsigned long timeBetweenTicks = anemometerLastTicks[0] - anemometerLastTicks[1];
+			// Covert to speed
+			anemometerSpeed = (float)((2.4 * 1000) / timeBetweenTicks);
+		}
+	}else{
+		anemometerWaitTick = true;
+	}
+
+	return anemometerSpeed;
+}
+float Sensors::calculateRainfall(float voltage){
+	if (anemometerRainfallSwitch == false && voltage < 2.5){
+		anemometerRainfallSwitch = true;
+		anemometerHourlyRain += 0.2754;
+	}
+	if (anemometerRainfallSwitch == true && voltage > 2.5){
+		anemometerRainfallSwitch = false;  
+	}
+	// if millis bigger than one hour reset the hourly rain
+	if (millis() - anemometerHourlyRainReset > 3600000){
+		anemometerHourlyRain = 0;
+		anemometerHourlyRainReset = millis();
+	}
+	return anemometerHourlyRain;
 }
 
 Sensors yetenek = Sensors();
