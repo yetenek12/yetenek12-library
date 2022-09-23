@@ -163,6 +163,7 @@ class Sensors
 		bool anemometerWaitTick = true;
 		unsigned long anemometerLastTicks[2] = {0, 0};
 		float anemometerSpeed = 0;
+		unsigned long lastAnemometerSpeedRead = 0;
 		bool anemometerRainfallSwitch = true;
 		float anemometerHourlyRain = 0;
 		unsigned long anemometerHourlyRainReset = 0;

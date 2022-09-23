@@ -1396,8 +1396,12 @@ float Sensors::calculateWindSpeed(float voltage){
 			// Covert to speed
 			anemometerSpeed = (float)((2.4 * 1000) / timeBetweenTicks);
 		}
+		lastAnemometerSpeedRead = millis();
 	}else{
 		anemometerWaitTick = true;
+		if(millis() - lastAnemometerSpeedRead > 1000){
+			anemometerSpeed = 0;
+		}
 	}
 
 	return anemometerSpeed;
