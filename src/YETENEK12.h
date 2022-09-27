@@ -50,6 +50,7 @@ class Sensors
 
 		enum errorCodes{
 			commTypeNotSelected = -2,
+			invalidRequest = -3
 		};
 
 		enum colorCodes{
@@ -68,7 +69,8 @@ class Sensors
 			imu,
 			temp,
 			motor,
-			gps
+			gps,
+			lora
 		};
 
 		// Global
@@ -140,7 +142,27 @@ class Sensors
 		float getMotorSpeed(int colorAddr, int motor);
 		float getMotorPosition(int colorAddr, int motor);
 		float getMotorVoltage(int colorAddr);
-		
+
+		// LoRa
+		float getLoraGPSLong(int colorAddr);
+		float getLoraGPSLat(int colorAddr);
+		int getLoraGPSSatallites(int colorAddr);
+		float getLoraGPSAltitude(int colorAddr);
+		float getLoraBMETemp(int colorAddr);
+		float getLoraBMEHumidity(int colorAddr);
+		float getLoraBMEPressure(int colorAddr);
+		float getLoraBMEAltitude(int colorAddr);
+		float getLoraSGPCO2(int colorAddr);
+		float getLoraSGPH2(int colorAddr);
+		float getLoraSGPTVOC(int colorAddr);
+		float getLoraSGPEthanol(int colorAddr);
+		int getLoraRSSI(int colorAddr);
+		int getLoraDateYear(int colorAddr);
+		int getLoraDateMonth(int colorAddr);
+		int getLoraDateDay(int colorAddr);
+		int getLoraTimeHour(int colorAddr);
+		int getLoraTimeMinute(int colorAddr);
+		int getLoraTimeSecond(int colorAddr);
 
 		// Internal
 		void setBuzzer(int value);
@@ -168,7 +190,6 @@ class Sensors
 		float anemometerHourlyRain = 0;
 		unsigned long anemometerHourlyRainReset = 0;
 
-		// Wireless Connection
 		
 
 	private:

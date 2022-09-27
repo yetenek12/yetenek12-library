@@ -33,7 +33,7 @@ void Sensors::init(int type){
 	display.setTextSize(1);
 	display.println();
 	display.print("Version: ");
-	display.println("0.0.1");
+	display.println("1.0.0");
 	display.display();
 	display.clearDisplay();
 
@@ -1061,6 +1061,345 @@ float Sensors::getMotorVoltage(int colorAddr){
 	}
 }
 
+// LoRa
+float Sensors::getLoraGPSLong(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_LORA_GPS_LNG_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_LORA_GPS_LNG_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_GPS_LNG_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_GPS_LNG_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getLoraGPSLat(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_LORA_GPS_LAT_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_LORA_GPS_LAT_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_GPS_LAT_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_GPS_LAT_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+int Sensors::getLoraGPSSatallites(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	int requestRegister = ADDR_LORA_GPS_SAT;
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(deviceAddr, requestRegister, &res)){ return res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		return modbus.int16FromRegister(HOLDING_REGISTERS, requestRegister, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getLoraGPSAltitude(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_LORA_GPS_ALT_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_LORA_GPS_ALT_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_GPS_ALT_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_GPS_ALT_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getLoraBMETemp(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_LORA_BME_TEMP_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_LORA_BME_TEMP_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_BME_TEMP_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_BME_TEMP_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getLoraBMEHumidity(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_LORA_BME_HUM_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_LORA_BME_HUM_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_BME_HUM_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_BME_HUM_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getLoraBMEPressure(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_LORA_BME_PRESSURE_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_LORA_BME_PRESSURE_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_BME_PRESSURE_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_BME_PRESSURE_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getLoraBMEAltitude(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_LORA_BME_ALT_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_LORA_BME_ALT_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_BME_ALT_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_BME_ALT_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getLoraSGPCO2(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_LORA_CO2_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_LORA_CO2_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_CO2_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_CO2_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getLoraSGPH2(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_LORA_H2_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_LORA_H2_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_H2_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_H2_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getLoraSGPTVOC(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_LORA_TVOC_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_LORA_TVOC_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_TVOC_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_TVOC_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+float Sensors::getLoraSGPEthanol(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	if(selectedComm == commType::i2c){
+		uint16_t val1 = 0, val2 = 0;
+		bool t1 = i2cRead(deviceAddr, ADDR_LORA_ETH_MSB, &val1);
+		bool t2 = i2cRead(deviceAddr, ADDR_LORA_ETH_LSB, &val2);
+		if(t1 && t2){ return float32_from_two_uint16(val1, val2); }
+		else{ return -1; };
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		uint16_t val1 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_ETH_MSB, bigEndian);
+		uint16_t val2 = modbus.uint16FromRegister(HOLDING_REGISTERS, ADDR_LORA_ETH_LSB, bigEndian);
+		return float32_from_two_uint16(val1, val2);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+int Sensors::getLoraRSSI(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	int requestRegister = ADDR_LORA_RSSI;
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(deviceAddr, requestRegister, &res)){ return (int16_t)res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		return (int16_t)modbus.int16FromRegister(HOLDING_REGISTERS, requestRegister, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+int Sensors::getLoraDateYear(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	int requestRegister = ADDR_LORA_DATE_YEAR;
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(deviceAddr, requestRegister, &res)){ return (int16_t)res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		return (int16_t)modbus.int16FromRegister(HOLDING_REGISTERS, requestRegister, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+int Sensors::getLoraDateMonth(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	int requestRegister = ADDR_LORA_DATE_MONTH;
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(deviceAddr, requestRegister, &res)){ return (int16_t)res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		return (int16_t)modbus.int16FromRegister(HOLDING_REGISTERS, requestRegister, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+int Sensors::getLoraDateDay(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	int requestRegister = ADDR_LORA_DATE_DAY;
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(deviceAddr, requestRegister, &res)){ return (int16_t)res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		return (int16_t)modbus.int16FromRegister(HOLDING_REGISTERS, requestRegister, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+int Sensors::getLoraTimeHour(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	int requestRegister = ADDR_LORA_TIME_HOUR;
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(deviceAddr, requestRegister, &res)){ return (int16_t)res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		return (int16_t)modbus.int16FromRegister(HOLDING_REGISTERS, requestRegister, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+int Sensors::getLoraTimeMinute(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	int requestRegister = ADDR_LORA_TIME_MIN;
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(deviceAddr, requestRegister, &res)){ return (int16_t)res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		return (int16_t)modbus.int16FromRegister(HOLDING_REGISTERS, requestRegister, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+int Sensors::getLoraTimeSecond(int colorAddr){
+	int deviceAddr = getDeviceAddrFromColor(boards::lora, colorAddr);
+	int requestRegister = ADDR_LORA_TIME_SEC;
+	if(selectedComm == commType::i2c){
+		uint16_t res = 0;
+		if(i2cRead(deviceAddr, requestRegister, &res)){ return (int16_t)res; }
+		else{ return 0; }
+
+	}else if(selectedComm == commType::modBus){
+		modbus.setSlaveID(deviceAddr);
+		return (int16_t)modbus.int16FromRegister(HOLDING_REGISTERS, requestRegister, bigEndian);
+	
+	}else{
+		return errorCodes::commTypeNotSelected;
+	}
+}
+
 // MAIN BOARD
 void Sensors::setBuzzer(int value){
 	digitalWrite(25, value);
@@ -1348,6 +1687,32 @@ int Sensors::getDeviceAddrFromColor(int board, int colorAddr){
 					break;
 				default:
 					deviceAddr = ADDR_MOTOR_1;
+					break;
+			}
+			break;
+
+		case boards::lora:
+			switch (colorAddr){
+				case colorCodes::green:
+					deviceAddr = ADDR_LORA_1;
+					break;
+				case colorCodes::blue:
+					deviceAddr = ADDR_LORA_2;
+					break;
+				case colorCodes::orange:
+					deviceAddr = ADDR_LORA_3;
+					break;
+				case colorCodes::yellow:
+					deviceAddr = ADDR_LORA_4;
+					break;
+				case colorCodes::turquoise:
+					deviceAddr = ADDR_LORA_5;
+					break;
+				case colorCodes::purple:
+					deviceAddr = ADDR_LORA_6;
+					break;
+				default:
+					deviceAddr = ADDR_LORA_1;
 					break;
 			}
 			break;
